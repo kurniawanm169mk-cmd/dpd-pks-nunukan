@@ -74,15 +74,38 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
           // Fetch Team
           const { data: teamData } = await supabase.from('team_members').select('*');
-          if (teamData) mergedConfig.team = teamData;
+          if (teamData) {
+            mergedConfig.team = teamData.map(t => ({
+              id: t.id,
+              name: t.name,
+              role: t.role,
+              photoUrl: t.photo_url,
+              description: t.description
+            }));
+          }
 
           // Fetch News
           const { data: newsData } = await supabase.from('news_items').select('*');
-          if (newsData) mergedConfig.news = newsData;
+          if (newsData) {
+            mergedConfig.news = newsData.map(n => ({
+              id: n.id,
+              title: n.title,
+              date: n.date,
+              content: n.content,
+              imageUrl: n.image_url
+            }));
+          }
 
           // Fetch Socials
           const { data: socialData } = await supabase.from('social_links').select('*');
-          if (socialData) mergedConfig.socialMedia = socialData;
+          if (socialData) {
+            mergedConfig.socialMedia = socialData.map(s => ({
+              id: s.id,
+              platform: s.platform,
+              url: s.url,
+              iconUrl: s.icon_url
+            }));
+          }
 
           setConfigState(mergedConfig);
         }
@@ -145,52 +168,63 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // However, the current AdminPanel passes the ENTIRE array.
 
       if (newConfig.team) {
-        // Upsert all (inefficient but works for small lists)
-        // Ideally we delete missing ones too, but let's just upsert for now or replace?
-        // Replacing is safer for "state sync".
-        // Strategy: Delete all and re-insert? Or Upsert?
-        // Let's try Upsert.
-        const { error } = await supabase.from('team_members').upsert(newConfig.team);
+        // Map to database format
+        const teamToSave = newConfig.team.map(t => ({
+          id: t.id,
+          name: t.name,
+          role: t.role,
+          photo_url: t.photoUrl,
+          description: t.description
+        }));
+
+        const { error } = await supabase.from('team_members').upsert(teamToSave);
         if (error) console.error('Error syncing team:', error);
 
-        // Check for deletions (if local array is smaller than DB?)
-        // Complex logic omitted for brevity, assuming add/edit mostly.
-        // If user deleted in UI, we need to delete in DB.
-        // Since we don't track diffs here easily, a "Delete" button in UI should call a specific delete function.
-        // But AdminPanel just calls updateConfig({ team: filtered }).
-
-        // FIX: To handle deletions properly with this API, we need to know what was deleted.
-        // OR we fetch current DB IDs, compare with newConfig IDs, and delete missing.
+        // Handle deletions
         const idsToKeep = newConfig.team.map(m => m.id);
         if (idsToKeep.length > 0) {
-          await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000').not('id', 'in', `(${idsToKeep.join(',')})`); // This syntax might be wrong for Supabase JS
-          // Correct way: .not('id', 'in', idsToKeep)
-          await supabase.from('team_members').delete().not('id', 'in', idsToKeep);
+          await supabase.from('team_members').delete().not('id', 'in', `(${idsToKeep.map(id => `'${id}'`).join(',')})`);
         } else {
-          // Delete all
           await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
 
       if (newConfig.news) {
-        const { error } = await supabase.from('news_items').upsert(newConfig.news);
+        // Map to database format
+        const newsToSave = newConfig.news.map(n => ({
+          id: n.id,
+          title: n.title,
+          date: n.date,
+          content: n.content,
+          image_url: n.imageUrl
+        }));
+
+        const { error } = await supabase.from('news_items').upsert(newsToSave);
         if (error) console.error('Error syncing news:', error);
 
         const idsToKeep = newConfig.news.map(n => n.id);
         if (idsToKeep.length > 0) {
-          await supabase.from('news_items').delete().not('id', 'in', idsToKeep);
+          await supabase.from('news_items').delete().not('id', 'in', `(${idsToKeep.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('news_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
 
       if (newConfig.socialMedia) {
-        const { error } = await supabase.from('social_links').upsert(newConfig.socialMedia);
+        // Map to database format
+        const socialToSave = newConfig.socialMedia.map(s => ({
+          id: s.id,
+          platform: s.platform,
+          url: s.url,
+          icon_url: s.iconUrl
+        }));
+
+        const { error } = await supabase.from('social_links').upsert(socialToSave);
         if (error) console.error('Error syncing social:', error);
 
         const idsToKeep = newConfig.socialMedia.map(s => s.id);
         if (idsToKeep.length > 0) {
-          await supabase.from('social_links').delete().not('id', 'in', idsToKeep);
+          await supabase.from('social_links').delete().not('id', 'in', `(${idsToKeep.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('social_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }

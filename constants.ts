@@ -9,6 +9,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   header: {
     backgroundColor: "#ffffff",
     textColor: "#111827",
+    hoverColor: "#2563eb",
     isSticky: true,
   },
   footer: {
@@ -37,6 +38,13 @@ export const DEFAULT_CONFIG: SiteConfig = {
     subtitle: "Bergabunglah dengan gerakan kami untuk menciptakan masyarakat yang adil, makmur, dan berteknologi maju.",
     imageUrl: "https://picsum.photos/1920/1080?random=1",
     ctaText: "Bergabung Sekarang",
+    ctaButtonColor: "#2563eb",
+    ctaButtonTextColor: "#ffffff",
+    ctaButtonLink: "#contact",
+    secondaryButtonText: "Pelajari Lebih Lanjut",
+    secondaryButtonColor: "transparent",
+    secondaryButtonTextColor: "#111827",
+    secondaryButtonLink: "#about",
     backgroundColor: "#ffffff",
     textColor: "#111827",
   },
@@ -59,6 +67,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   ],
   teamBackgroundColor: "#ffffff",
   teamTextColor: "#111827",
+  teamTitleColor: "#111827",
   team: [
     {
       id: "1",
@@ -81,7 +90,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       photoUrl: "https://picsum.photos/200/200?random=12",
       description: "Profesional di bidang keuangan dengan sertifikasi CFA dan pengalaman di berbagai perusahaan multinasional."
     },
-     {
+    {
       id: "4",
       name: "Andi Wijaya",
       role: "Ketua Bidang Pemuda",
@@ -91,6 +100,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   ],
   newsBackgroundColor: "#f9fafb",
   newsTextColor: "#111827",
+  newsTitleColor: "#111827",
+  aboutTitleColor: "#111827",
   news: [
     {
       id: "101",

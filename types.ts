@@ -30,6 +30,7 @@ export interface SiteConfig {
   header: {
     backgroundColor: string; // Hex or rgba
     textColor: string;
+    hoverColor?: string; // Hover color for navigation items
     isSticky: boolean;
   };
   footer: {
@@ -58,6 +59,13 @@ export interface SiteConfig {
     subtitle: string;
     imageUrl: string;
     ctaText: string;
+    ctaButtonColor?: string;
+    ctaButtonTextColor?: string;
+    ctaButtonLink?: string;
+    secondaryButtonText?: string;
+    secondaryButtonColor?: string;
+    secondaryButtonTextColor?: string;
+    secondaryButtonLink?: string;
     backgroundColor: string;
     textColor: string;
   };
@@ -77,9 +85,12 @@ export interface SiteConfig {
   team: TeamMember[];
   teamBackgroundColor: string;
   teamTextColor: string;
+  teamTitleColor?: string;
   news: NewsItem[];
   newsBackgroundColor: string;
   newsTextColor: string;
+  newsTitleColor?: string;
+  aboutTitleColor?: string;
 }
 
 export interface ConfigContextType {
