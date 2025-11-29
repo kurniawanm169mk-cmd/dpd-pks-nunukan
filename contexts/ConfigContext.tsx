@@ -168,123 +168,162 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // However, the current AdminPanel passes the ENTIRE array.
 
       if (newConfig.team) {
-        // Map to database format
-        const teamToSave = newConfig.team.map(t => {
-          const item: any = {
+        // Separate new items from existing items
+        const newItems = newConfig.team.filter(t => !t.id.includes('-'));
+        const existingItems = newConfig.team.filter(t => t.id.includes('-'));
+
+        let allTeamData = [...existingItems];
+
+        // Insert new items (without ID, let DB generate UUID)
+        if (newItems.length > 0) {
+          const newTeamData = newItems.map(t => ({
             name: t.name,
             role: t.role,
             photo_url: t.photoUrl,
             description: t.description
-          };
-          // Only include ID if it looks like a UUID (has dashes)
-          // New items from AdminPanel have numeric IDs, let Supabase generate UUID
-          if (t.id.includes('-')) {
-            item.id = t.id;
-          }
-          return item;
-        });
+          }));
 
-        const { data, error } = await supabase.from('team_members').upsert(teamToSave, { onConflict: 'id' }).select();
-        if (error) {
-          console.error('Error syncing team:', error);
-        } else if (data) {
-          // Update local state with server-generated IDs
-          setConfigState(prev => ({
-            ...prev,
-            team: data.map(t => ({
+          const { data, error } = await supabase.from('team_members').insert(newTeamData).select();
+          if (error) {
+            console.error('Error inserting team:', error);
+          } else if (data) {
+            allTeamData = [...allTeamData, ...data.map(t => ({
               id: t.id,
               name: t.name,
               role: t.role,
               photoUrl: t.photo_url,
               description: t.description
-            }))
-          }));
+            }))];
+          }
         }
 
-        // Handle deletions - only delete items with valid UUIDs
-        const uuidIds = newConfig.team.filter(m => m.id.includes('-')).map(m => m.id);
-        if (uuidIds.length > 0) {
-          await supabase.from('team_members').delete().not('id', 'in', `(${uuidIds.map(id => `'${id}'`).join(',')})`);
+        // Update existing items
+        for (const item of existingItems) {
+          const { error } = await supabase
+            .from('team_members')
+            .update({
+              name: item.name,
+              role: item.role,
+              photo_url: item.photoUrl,
+              description: item.description
+            })
+            .eq('id', item.id);
+
+          if (error) console.error('Error updating team member:', error);
+        }
+
+        // Update local state with all team data
+        setConfigState(prev => ({ ...prev, team: allTeamData }));
+
+        // Handle deletions
+        const currentIds = allTeamData.map(m => m.id);
+        if (currentIds.length > 0) {
+          await supabase.from('team_members').delete().not('id', 'in', `(${currentIds.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
 
       if (newConfig.news) {
-        // Map to database format
-        const newsToSave = newConfig.news.map(n => {
-          const item: any = {
+        const newItems = newConfig.news.filter(n => !n.id.includes('-'));
+        const existingItems = newConfig.news.filter(n => n.id.includes('-'));
+
+        let allNewsData = [...existingItems];
+
+        // Insert new items
+        if (newItems.length > 0) {
+          const newNewsData = newItems.map(n => ({
             title: n.title,
             date: n.date,
             content: n.content,
             image_url: n.imageUrl
-          };
-          // Only include ID if it looks like a UUID
-          if (n.id.includes('-')) {
-            item.id = n.id;
-          }
-          return item;
-        });
+          }));
 
-        const { data, error } = await supabase.from('news_items').upsert(newsToSave, { onConflict: 'id' }).select();
-        if (error) {
-          console.error('Error syncing news:', error);
-        } else if (data) {
-          // Update local state with server-generated IDs
-          setConfigState(prev => ({
-            ...prev,
-            news: data.map(n => ({
+          const { data, error } = await supabase.from('news_items').insert(newNewsData).select();
+          if (error) {
+            console.error('Error inserting news:', error);
+          } else if (data) {
+            allNewsData = [...allNewsData, ...data.map(n => ({
               id: n.id,
               title: n.title,
               date: n.date,
               content: n.content,
               imageUrl: n.image_url
-            }))
-          }));
+            }))];
+          }
         }
 
-        const uuidIds = newConfig.news.filter(n => n.id.includes('-')).map(n => n.id);
-        if (uuidIds.length > 0) {
-          await supabase.from('news_items').delete().not('id', 'in', `(${uuidIds.map(id => `'${id}'`).join(',')})`);
+        // Update existing items
+        for (const item of existingItems) {
+          const { error } = await supabase
+            .from('news_items')
+            .update({
+              title: item.title,
+              date: item.date,
+              content: item.content,
+              image_url: item.imageUrl
+            })
+            .eq('id', item.id);
+
+          if (error) console.error('Error updating news:', error);
+        }
+
+        setConfigState(prev => ({ ...prev, news: allNewsData }));
+
+        const currentIds = allNewsData.map(n => n.id);
+        if (currentIds.length > 0) {
+          await supabase.from('news_items').delete().not('id', 'in', `(${currentIds.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('news_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
 
       if (newConfig.socialMedia) {
-        // Map to database format
-        const socialToSave = newConfig.socialMedia.map(s => {
-          const item: any = {
+        const newItems = newConfig.socialMedia.filter(s => !s.id.includes('-'));
+        const existingItems = newConfig.socialMedia.filter(s => s.id.includes('-'));
+
+        let allSocialData = [...existingItems];
+
+        // Insert new items
+        if (newItems.length > 0) {
+          const newSocialData = newItems.map(s => ({
             platform: s.platform,
             url: s.url,
             icon_url: s.iconUrl
-          };
-          // Only include ID if it looks like a UUID
-          if (s.id.includes('-')) {
-            item.id = s.id;
-          }
-          return item;
-        });
+          }));
 
-        const { data, error } = await supabase.from('social_links').upsert(socialToSave, { onConflict: 'id' }).select();
-        if (error) {
-          console.error('Error syncing social:', error);
-        } else if (data) {
-          // Update local state with server-generated IDs
-          setConfigState(prev => ({
-            ...prev,
-            socialMedia: data.map(s => ({
+          const { data, error } = await supabase.from('social_links').insert(newSocialData).select();
+          if (error) {
+            console.error('Error inserting social:', error);
+          } else if (data) {
+            allSocialData = [...allSocialData, ...data.map(s => ({
               id: s.id,
               platform: s.platform,
               url: s.url,
               iconUrl: s.icon_url
-            }))
-          }));
+            }))];
+          }
         }
 
-        const uuidIds = newConfig.socialMedia.filter(s => s.id.includes('-')).map(s => s.id);
-        if (uuidIds.length > 0) {
-          await supabase.from('social_links').delete().not('id', 'in', `(${uuidIds.map(id => `'${id}'`).join(',')})`);
+        // Update existing items
+        for (const item of existingItems) {
+          const { error } = await supabase
+            .from('social_links')
+            .update({
+              platform: item.platform,
+              url: item.url,
+              icon_url: item.iconUrl
+            })
+            .eq('id', item.id);
+
+          if (error) console.error('Error updating social:', error);
+        }
+
+        setConfigState(prev => ({ ...prev, socialMedia: allSocialData }));
+
+        const currentIds = allSocialData.map(s => s.id);
+        if (currentIds.length > 0) {
+          await supabase.from('social_links').delete().not('id', 'in', `(${currentIds.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('social_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
