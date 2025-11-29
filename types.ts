@@ -18,6 +18,7 @@ export interface SocialLink {
   id: string;
   platform: 'Facebook' | 'Twitter' | 'Instagram' | 'Youtube' | 'LinkedIn' | 'TikTok' | 'Website';
   url: string;
+  iconUrl?: string; // URL for custom icon
 }
 
 export interface SiteConfig {

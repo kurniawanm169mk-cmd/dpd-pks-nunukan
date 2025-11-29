@@ -27,7 +27,6 @@ create policy "Allow public read access" on public.site_settings
   for select using (true);
 
 -- Policy: Allow update access to authenticated users (admins)
--- Assuming you will use Supabase Auth. If not, you might need to adjust this.
 create policy "Allow authenticated update access" on public.site_settings
   for update using (auth.role() = 'authenticated');
   
@@ -77,6 +76,7 @@ create table public.social_links (
   id uuid primary key default uuid_generate_v4(),
   platform text not null,
   url text not null,
+  icon_url text, -- Added for custom icon upload
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
@@ -89,5 +89,7 @@ create policy "Allow public read access" on public.social_links
 create policy "Allow authenticated insert/update/delete" on public.social_links
   for all using (auth.role() = 'authenticated');
 
--- Storage Buckets (Optional, for images)
--- You might want to create a bucket named 'images' in the Supabase dashboard.
+-- STORAGE BUCKET SETUP
+-- You must create a bucket named 'images' in the Supabase Dashboard -> Storage.
+-- Make sure it is Public.
+-- Add a policy to allow authenticated uploads.
