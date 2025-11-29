@@ -169,21 +169,42 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (newConfig.team) {
         // Map to database format
-        const teamToSave = newConfig.team.map(t => ({
-          id: t.id,
-          name: t.name,
-          role: t.role,
-          photo_url: t.photoUrl,
-          description: t.description
-        }));
+        const teamToSave = newConfig.team.map(t => {
+          const item: any = {
+            name: t.name,
+            role: t.role,
+            photo_url: t.photoUrl,
+            description: t.description
+          };
+          // Only include ID if it looks like a UUID (has dashes)
+          // New items from AdminPanel have numeric IDs, let Supabase generate UUID
+          if (t.id.includes('-')) {
+            item.id = t.id;
+          }
+          return item;
+        });
 
-        const { error } = await supabase.from('team_members').upsert(teamToSave);
-        if (error) console.error('Error syncing team:', error);
+        const { data, error } = await supabase.from('team_members').upsert(teamToSave, { onConflict: 'id' }).select();
+        if (error) {
+          console.error('Error syncing team:', error);
+        } else if (data) {
+          // Update local state with server-generated IDs
+          setConfigState(prev => ({
+            ...prev,
+            team: data.map(t => ({
+              id: t.id,
+              name: t.name,
+              role: t.role,
+              photoUrl: t.photo_url,
+              description: t.description
+            }))
+          }));
+        }
 
-        // Handle deletions
-        const idsToKeep = newConfig.team.map(m => m.id);
-        if (idsToKeep.length > 0) {
-          await supabase.from('team_members').delete().not('id', 'in', `(${idsToKeep.map(id => `'${id}'`).join(',')})`);
+        // Handle deletions - only delete items with valid UUIDs
+        const uuidIds = newConfig.team.filter(m => m.id.includes('-')).map(m => m.id);
+        if (uuidIds.length > 0) {
+          await supabase.from('team_members').delete().not('id', 'in', `(${uuidIds.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
@@ -191,20 +212,40 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (newConfig.news) {
         // Map to database format
-        const newsToSave = newConfig.news.map(n => ({
-          id: n.id,
-          title: n.title,
-          date: n.date,
-          content: n.content,
-          image_url: n.imageUrl
-        }));
+        const newsToSave = newConfig.news.map(n => {
+          const item: any = {
+            title: n.title,
+            date: n.date,
+            content: n.content,
+            image_url: n.imageUrl
+          };
+          // Only include ID if it looks like a UUID
+          if (n.id.includes('-')) {
+            item.id = n.id;
+          }
+          return item;
+        });
 
-        const { error } = await supabase.from('news_items').upsert(newsToSave);
-        if (error) console.error('Error syncing news:', error);
+        const { data, error } = await supabase.from('news_items').upsert(newsToSave, { onConflict: 'id' }).select();
+        if (error) {
+          console.error('Error syncing news:', error);
+        } else if (data) {
+          // Update local state with server-generated IDs
+          setConfigState(prev => ({
+            ...prev,
+            news: data.map(n => ({
+              id: n.id,
+              title: n.title,
+              date: n.date,
+              content: n.content,
+              imageUrl: n.image_url
+            }))
+          }));
+        }
 
-        const idsToKeep = newConfig.news.map(n => n.id);
-        if (idsToKeep.length > 0) {
-          await supabase.from('news_items').delete().not('id', 'in', `(${idsToKeep.map(id => `'${id}'`).join(',')})`);
+        const uuidIds = newConfig.news.filter(n => n.id.includes('-')).map(n => n.id);
+        if (uuidIds.length > 0) {
+          await supabase.from('news_items').delete().not('id', 'in', `(${uuidIds.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('news_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
@@ -212,19 +253,38 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (newConfig.socialMedia) {
         // Map to database format
-        const socialToSave = newConfig.socialMedia.map(s => ({
-          id: s.id,
-          platform: s.platform,
-          url: s.url,
-          icon_url: s.iconUrl
-        }));
+        const socialToSave = newConfig.socialMedia.map(s => {
+          const item: any = {
+            platform: s.platform,
+            url: s.url,
+            icon_url: s.iconUrl
+          };
+          // Only include ID if it looks like a UUID
+          if (s.id.includes('-')) {
+            item.id = s.id;
+          }
+          return item;
+        });
 
-        const { error } = await supabase.from('social_links').upsert(socialToSave);
-        if (error) console.error('Error syncing social:', error);
+        const { data, error } = await supabase.from('social_links').upsert(socialToSave, { onConflict: 'id' }).select();
+        if (error) {
+          console.error('Error syncing social:', error);
+        } else if (data) {
+          // Update local state with server-generated IDs
+          setConfigState(prev => ({
+            ...prev,
+            socialMedia: data.map(s => ({
+              id: s.id,
+              platform: s.platform,
+              url: s.url,
+              iconUrl: s.icon_url
+            }))
+          }));
+        }
 
-        const idsToKeep = newConfig.socialMedia.map(s => s.id);
-        if (idsToKeep.length > 0) {
-          await supabase.from('social_links').delete().not('id', 'in', `(${idsToKeep.map(id => `'${id}'`).join(',')})`);
+        const uuidIds = newConfig.socialMedia.filter(s => s.id.includes('-')).map(s => s.id);
+        if (uuidIds.length > 0) {
+          await supabase.from('social_links').delete().not('id', 'in', `(${uuidIds.map(id => `'${id}'`).join(',')})`);
         } else {
           await supabase.from('social_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
