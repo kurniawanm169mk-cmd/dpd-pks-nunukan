@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from '../contexts/ConfigContext';
 import {
-  Save, Loader2, Plus, Trash, Wand2, FileText, Users, Layout,
+  Save, Loader2, Plus, Trash, FileText, Users, Layout,
   Settings, Palette, PanelTop, PanelBottom, MousePointerClick,
-  Globe, RefreshCw, LogOut, Menu, X
+  Globe, RefreshCw, LogOut, X
 } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 import { SiteConfig, TeamMember, NewsItem, SocialLink } from '../types';
-import { generateText } from '../utils/gemini';
 
 const AdminPanel: React.FC = () => {
   const { config, updateConfig, resetConfig, logout } = useConfig();
   const [activeTab, setActiveTab] = useState<'general' | 'hero' | 'about' | 'team' | 'news' | 'header_footer'>('general');
-  const [isGenerating, setIsGenerating] = useState(false);
 
   // Local state for manual save
   const [localConfig, setLocalConfig] = useState<SiteConfig>(config);
@@ -43,26 +41,6 @@ const AdminPanel: React.FC = () => {
       alert("Gagal menyimpan perubahan.");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  // AI Generation Handler
-  const handleAIGenerate = async (prompt: string, field: string, type: 'hero' | 'about' | 'news', id?: string) => {
-    setIsGenerating(true);
-    try {
-      const result = await generateText(prompt, type);
-      if (type === 'hero' && field === 'subtitle') {
-        handleLocalUpdate({ hero: { ...localConfig.hero, subtitle: result } });
-      } else if (type === 'about' && field === 'content') {
-        handleLocalUpdate({ about: { ...localConfig.about, content: result } });
-      } else if (type === 'news' && id) {
-        const updatedNews = localConfig.news.map(n => n.id === id ? { ...n, content: result } : n);
-        handleLocalUpdate({ news: updatedNews });
-      }
-    } catch (e) {
-      alert("Gagal menggunakan AI. Pastikan API KEY dikonfigurasi.");
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -493,11 +471,8 @@ const AdminPanel: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex justify-between">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Sub Judul
-                <button onClick={() => handleAIGenerate(`Buatkan subjudul website partai/organisasi yang inspiratif tentang: ${localConfig.hero.title}`, 'subtitle', 'hero')} className="text-xs text-primary flex items-center gap-1 hover:underline">
-                  <Wand2 size={12} /> AI Rewrite
-                </button>
               </label>
               <textarea
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none h-24"
@@ -594,11 +569,8 @@ const AdminPanel: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex justify-between">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Konten Deskripsi
-              <button onClick={() => handleAIGenerate(`Buatkan deskripsi 'Tentang Kami' untuk organisasi bernama ${localConfig.identity.name}. Visi: modern dan solid.`, 'content', 'about')} className="text-xs text-primary flex items-center gap-1 hover:underline">
-                <Wand2 size={12} /> AI Generate
-              </button>
             </label>
             <textarea
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none h-40"
@@ -809,11 +781,6 @@ const AdminPanel: React.FC = () => {
                     value={item.content}
                     onChange={(e) => updateNews(item.id, 'content', e.target.value)}
                   />
-                  <div className="flex justify-end">
-                    <button onClick={() => handleAIGenerate(`Buatkan berita kegiatan fiktif dengan judul: ${item.title}`, item.id, 'news')} className="text-xs text-primary flex items-center gap-1 hover:underline">
-                      <Wand2 size={12} /> AI Generate Content
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -876,15 +843,6 @@ const AdminPanel: React.FC = () => {
         {activeTab === 'team' && renderTeamTab()}
         {activeTab === 'news' && renderNewsTab()}
       </div>
-
-      {isGenerating && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white p-4 rounded-xl shadow-xl flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-            <span className="font-medium text-sm">Sedang menulis dengan AI...</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
