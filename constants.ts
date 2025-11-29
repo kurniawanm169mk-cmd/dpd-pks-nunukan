@@ -103,6 +103,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
   newsTextColor: "#111827",
   newsTitleColor: "#111827",
   aboutTitleColor: "#111827",
+  sectionTitles: {
+    structure: 'Struktur Organisasi',
+    news: 'Berita & Kegiatan'
+  },
   news: [
     {
       id: "101",

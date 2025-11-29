@@ -21,14 +21,24 @@ const PublicPage: React.FC = () => {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   // Hero Carousel State
-  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Branding Effect
+  // Dynamic browser tab branding - update title and favicon
   useEffect(() => {
-    document.title = config.identity.name || 'PartaiKita CMS';
-    const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-    if (favicon && config.identity.logoUrl) {
-      favicon.href = config.identity.logoUrl;
+    // Update document title
+    if (config.identity.name) {
+      document.title = config.identity.name;
+    }
+
+    // Update favicon
+    if (config.identity.logoUrl) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = config.identity.logoUrl;
     }
   }, [config.identity.name, config.identity.logoUrl]);
 
@@ -38,7 +48,7 @@ const PublicPage: React.FC = () => {
     if (images.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentHeroSlide((prev) => (prev + 1) % images.length);
+      setCurrentSlide((prev) => (prev + 1) % images.length);
     }, 5000);
 
     return () => clearInterval(interval);
@@ -224,9 +234,9 @@ const PublicPage: React.FC = () => {
                   {config.hero.subtitle}
                 </p>
                 <div className="flex gap-4">
-                  <button className={`px-8 py-4 btn-custom font-semibold shadow-xl transition flex items-center gap-2 ${roundedClass}`}>
+                  <a href={config.hero.ctaButtonLink || '#contact'} className={`px-8 py-4 btn-custom font-semibold shadow-xl transition flex items-center gap-2 ${roundedClass}`}>
                     {config.hero.ctaText} <ArrowRight size={20} />
-                  </button>
+                  </a>
                   <button className={`px-8 py-4 bg-transparent border-2 border-current font-semibold hover:bg-black/5 transition ${roundedClass}`}>
                     Pelajari Lebih Lanjut
                   </button>
@@ -253,7 +263,7 @@ const PublicPage: React.FC = () => {
                             key={idx}
                             src={img}
                             alt={`Hero ${idx + 1}`}
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentHeroSlide ? 'opacity-100' : 'opacity-0'}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
                           />
                         ))}
 
@@ -263,8 +273,8 @@ const PublicPage: React.FC = () => {
                             {images.map((_, idx) => (
                               <button
                                 key={idx}
-                                onClick={() => setCurrentHeroSlide(idx)}
-                                className={`w-2 h-2 rounded-full transition-all ${idx === currentHeroSlide ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'}`}
+                                onClick={() => setCurrentSlide(idx)}
+                                className={`w-2 h-2 rounded-full transition-all ${idx === currentSlide ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'}`}
                               />
                             ))}
                           </div>
@@ -287,11 +297,13 @@ const PublicPage: React.FC = () => {
               <div className={`bg-white p-8 md:p-12 shadow-sm ${roundedClass}`} style={{ color: '#111827' }}>
                 {/* Note: About card always has white background, so force dark text inside for readability unless customized otherwise later */}
                 <div className="grid md:grid-cols-2 gap-12 items-center">
-                  <img
-                    src={config.about.imageUrl}
-                    alt="About"
-                    className={`w-full h-96 object-cover ${roundedClass}`}
-                  />
+                  {config.about.imageUrl && (
+                    <img
+                      src={config.about.imageUrl}
+                      alt="About"
+                      className={`w-full h-96 object-cover ${roundedClass}`}
+                    />
+                  )}
                   <div className="space-y-6">
                     <span className="text-primary font-bold tracking-wider text-sm uppercase">Tentang Kami</span>
                     <h3 className="text-3xl font-bold">{config.about.title}</h3>
@@ -312,7 +324,7 @@ const PublicPage: React.FC = () => {
           >
             <div className="container mx-auto px-6">
               <div className="text-center max-w-2xl mx-auto mb-16">
-                <h3 className="text-3xl font-bold mb-4">Struktur Organisasi</h3>
+                <h3 className="text-3xl font-bold mb-4">{config.sectionTitles?.structure || 'Struktur Organisasi'}</h3>
                 <p className="opacity-80">Para pemimpin yang berdedikasi untuk membawa perubahan positif.</p>
               </div>
 
@@ -320,17 +332,19 @@ const PublicPage: React.FC = () => {
                 {config.team.map((member) => (
                   <div key={member.id} className="group text-center cursor-pointer" onClick={() => navigateToTeam(member)}>
                     <div className={`relative overflow-hidden mb-4 bg-gray-100 aspect-square ${roundedClass}`}>
-                      <img
-                        src={member.photoUrl}
-                        alt={member.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
+                      {member.photoUrl && (
+                        <img
+                          src={member.photoUrl}
+                          alt={member.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white font-medium">
                         Lihat Profil
                       </div>
                     </div>
                     <h4 className="text-lg font-bold">{member.name}</h4>
-                    <p className="text-primary font-medium text-sm">{member.role}</p>
+                    <p className="font-medium text-sm opacity-80">{member.role}</p>
                   </div>
                 ))}
                 {config.team.length === 0 && (
@@ -349,7 +363,7 @@ const PublicPage: React.FC = () => {
             <div className="container mx-auto px-6">
               <div className="flex justify-between items-end mb-12">
                 <div>
-                  <h3 className="text-3xl font-bold mb-2">Berita & Kegiatan</h3>
+                  <h3 className="text-3xl font-bold mb-2">{config.sectionTitles?.news || 'Berita & Kegiatan'}</h3>
                   <p className="opacity-80">Update terbaru dari pergerakan kami.</p>
                 </div>
                 <button className="hidden md:flex items-center gap-1 text-primary font-semibold hover:gap-2 transition-all">Lihat Semua <ChevronRight size={18} /></button>
@@ -460,11 +474,12 @@ const PublicPage: React.FC = () => {
                     href={social.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2 bg-white/10 rounded-full hover:bg-primary hover:text-white transition"
+                    className="p-2 bg-white/10 rounded-full hover:bg-primary hover:text-white transition flex items-center justify-center"
                     title={social.platform}
+                    style={{ color: social.iconColor || 'white' }}
                   >
                     {social.iconUrl ? (
-                      <img src={social.iconUrl} alt={social.platform} className="w-5 h-5 object-contain invert" />
+                      <img src={social.iconUrl || undefined} alt={social.platform} className="w-5 h-5 object-contain" style={{ filter: social.iconColor ? 'none' : 'invert(1)' }} />
                     ) : (
                       getSocialIcon(social.platform)
                     )}

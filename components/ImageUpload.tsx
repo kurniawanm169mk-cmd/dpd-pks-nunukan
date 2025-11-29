@@ -1,115 +1,163 @@
-import React, { useState } from 'react';
-import { supabase } from '../services/supabaseClient';
+import React, { useState, useEffect } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
+import ImageCropModal from './ImageCropModal';
 
 interface ImageUploadProps {
     currentImageUrl?: string;
     onUpload: (url: string) => void;
-    bucketName?: string;
     label?: string;
+    bucketName?: string;
     className?: string;
+    layout?: 'horizontal' | 'vertical';
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
     currentImageUrl,
     onUpload,
-    bucketName = 'images',
-    label = 'Upload Image',
-    className = '',
+    label = "Upload Image",
+    bucketName = "images",
+    className = "",
+    layout = "horizontal"
 }) => {
+    const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || '');
     const [uploading, setUploading] = useState(false);
-    const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentImageUrl);
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedFileName, setSelectedFileName] = useState<string>('');
 
-    const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Sync preview with currentImageUrl prop changes
+    useEffect(() => {
+        setPreviewUrl(currentImageUrl || '');
+    }, [currentImageUrl]);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Create preview URL for cropping
+        const imageUrl = URL.createObjectURL(file);
+        setSelectedImage(imageUrl);
+        setSelectedFileName(file.name);
+        setShowCropModal(true);
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        setShowCropModal(false);
+        setUploading(true);
+
         try {
-            setUploading(true);
-
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error('You must select an image to upload.');
-            }
-
-            const file = event.target.files[0];
-            const fileExt = file.name.split('.').pop();
+            const fileExt = selectedFileName.split('.').pop();
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
 
+            // Upload cropped blob to Supabase
             const { error: uploadError } = await supabase.storage
                 .from(bucketName)
-                .upload(filePath, file);
+                .upload(filePath, croppedBlob);
 
             if (uploadError) {
                 throw uploadError;
             }
 
+            // Get public URL
             const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+            const publicUrl = data.publicUrl;
 
-            setPreviewUrl(data.publicUrl);
-            onUpload(data.publicUrl);
+            setPreviewUrl(publicUrl);
+            onUpload(publicUrl);
         } catch (error) {
-            alert('Error uploading image: ' + (error as Error).message);
+            console.error('Error uploading image:', error);
+            alert('Gagal mengupload gambar');
         } finally {
             setUploading(false);
+            if (selectedImage) {
+                URL.revokeObjectURL(selectedImage);
+            }
+            setSelectedImage(null);
         }
     };
 
+    const handleCropCancel = () => {
+        setShowCropModal(false);
+        if (selectedImage) {
+            URL.revokeObjectURL(selectedImage);
+        }
+        setSelectedImage(null);
+    };
+
     const handleRemove = () => {
-        setPreviewUrl(undefined);
+        setPreviewUrl('');
         onUpload('');
     };
 
     return (
-        <div className={`flex flex-col gap-4 ${className}`}>
-            {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+        <>
+            <div className={`${className}`}>
+                {label && <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>}
 
-            <div className="flex items-center gap-4">
-                {previewUrl ? (
-                    <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 group">
-                        <img
-                            src={previewUrl}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                        />
-                        <button
-                            onClick={handleRemove}
-                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            type="button"
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-                ) : (
-                    <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                        <span className="text-gray-400 text-sm">No image</span>
-                    </div>
-                )}
+                <div className={`flex gap-3 ${layout === 'vertical' ? 'flex-col items-start' : 'items-center flex-wrap sm:flex-nowrap'}`}>
+                    {/* Preview Area */}
+                    {previewUrl ? (
+                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 border-gray-200 group bg-gray-50">
+                            <img
+                                src={previewUrl}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                            />
+                            <button
+                                onClick={handleRemove}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
+                                type="button"
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="w-20 h-20 flex-shrink-0 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                            <Upload className="h-5 w-5 text-gray-400" />
+                        </div>
+                    )}
 
-                <div className="flex-1">
-                    <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        {uploading ? (
-                            <>
-                                <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                Uploading...
-                            </>
-                        ) : (
-                            <>
-                                <Upload className="-ml-1 mr-2 h-4 w-4" />
-                                Select Image
-                            </>
-                        )}
-                        <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleUpload}
-                            disabled={uploading}
-                        />
-                    </label>
-                    <p className="mt-2 text-xs text-gray-500">
-                        PNG, JPG, GIF up to 5MB
-                    </p>
+                    {/* Upload Button */}
+                    <div className={`${layout === 'vertical' ? 'w-full max-w-[150px]' : 'flex-1 min-w-[120px]'}`}>
+                        <label className="cursor-pointer inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors w-full">
+                            {uploading ? (
+                                <>
+                                    <Loader2 className="animate-spin mr-1.5 h-3.5 w-3.5" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="mr-1.5 h-3.5 w-3.5" />
+                                    {previewUrl ? 'Ganti' : 'Pilih'}
+                                </>
+                            )}
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleFileSelect}
+                                disabled={uploading}
+                            />
+                        </label>
+                        <p className="text-[10px] text-gray-500 mt-1">
+                            Max 5MB
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* Crop Modal */}
+            {showCropModal && selectedImage && (
+                <ImageCropModal
+                    imageUrl={selectedImage}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                    aspectRatio={1}
+                />
+            )}
+        </>
     );
 };
 

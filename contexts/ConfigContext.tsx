@@ -103,7 +103,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               id: s.id,
               platform: s.platform,
               url: s.url,
-              iconUrl: s.icon_url
+              iconUrl: s.icon_url,
+              iconColor: s.icon_color
             }));
           }
 
@@ -289,7 +290,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const newSocialData = newItems.map(s => ({
             platform: s.platform,
             url: s.url,
-            icon_url: s.iconUrl
+            icon_url: s.iconUrl,
+            icon_color: s.iconColor
           }));
 
           const { data, error } = await supabase.from('social_links').insert(newSocialData).select();
@@ -300,7 +302,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               id: s.id,
               platform: s.platform,
               url: s.url,
-              iconUrl: s.icon_url
+              iconUrl: s.icon_url,
+              iconColor: s.icon_color
             }))];
           }
         }
@@ -312,7 +315,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             .update({
               platform: item.platform,
               url: item.url,
-              icon_url: item.iconUrl
+              icon_url: item.iconUrl,
+              icon_color: item.iconColor
             })
             .eq('id', item.id);
 

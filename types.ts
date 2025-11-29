@@ -19,6 +19,7 @@ export interface SocialLink {
   platform: 'Facebook' | 'Twitter' | 'Instagram' | 'Youtube' | 'LinkedIn' | 'TikTok' | 'Website';
   url: string;
   iconUrl?: string; // URL for custom icon
+  iconColor?: string;
 }
 
 export interface SiteConfig {
@@ -92,6 +93,10 @@ export interface SiteConfig {
   newsTextColor: string;
   newsTitleColor?: string;
   aboutTitleColor?: string;
+  sectionTitles: {
+    structure: string;
+    news: string;
+  };
 }
 
 export interface ConfigContextType {
