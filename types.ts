@@ -58,6 +58,7 @@ export interface SiteConfig {
     title: string;
     subtitle: string;
     imageUrl: string;
+    images?: string[]; // Array of image URLs for carousel
     ctaText: string;
     ctaButtonColor?: string;
     ctaButtonTextColor?: string;

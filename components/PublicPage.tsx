@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useConfig } from '../contexts/ConfigContext';
 import { Menu, X, Facebook, Twitter, Instagram, Mail, MapPin, Phone, ArrowRight, ChevronRight, Lock, LogIn, Youtube, Linkedin, Globe, Link as LinkIcon, Music, ArrowLeft, Calendar } from 'lucide-react';
 import { NewsItem, TeamMember } from '../types';
@@ -19,6 +19,30 @@ const PublicPage: React.FC = () => {
   const [view, setView] = useState<ViewState>('home');
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+
+  // Hero Carousel State
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+
+  // Branding Effect
+  useEffect(() => {
+    document.title = config.identity.name || 'PartaiKita CMS';
+    const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (favicon && config.identity.logoUrl) {
+      favicon.href = config.identity.logoUrl;
+    }
+  }, [config.identity.name, config.identity.logoUrl]);
+
+  // Hero Auto-slide Effect
+  useEffect(() => {
+    const images = config.hero.images || (config.hero.imageUrl ? [config.hero.imageUrl] : []);
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentHeroSlide((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [config.hero.images, config.hero.imageUrl]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,7 +216,7 @@ const PublicPage: React.FC = () => {
             style={{ backgroundColor: config.hero.backgroundColor || '#ffffff', color: config.hero.textColor || '#111827' }}
           >
             <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8 animate-fadeIn">
+              <div className="space-y-8 animate-fadeIn relative z-10">
                 <h2 className="text-5xl md:text-6xl font-extrabold leading-tight">
                   {config.hero.title}
                 </h2>
@@ -210,11 +234,45 @@ const PublicPage: React.FC = () => {
               </div>
               <div className="relative">
                 <div className={`absolute inset-0 bg-primary/10 -rotate-6 scale-95 ${roundedClass}`}></div>
-                <img
-                  src={config.hero.imageUrl}
-                  alt="Hero"
-                  className={`relative z-10 w-full aspect-[4/3] object-cover shadow-2xl ${roundedClass}`}
-                />
+
+                {/* Carousel / Image Display */}
+                <div className={`relative z-10 w-full aspect-[4/3] overflow-hidden shadow-2xl ${roundedClass}`}>
+                  {(() => {
+                    const images = config.hero.images && config.hero.images.length > 0
+                      ? config.hero.images
+                      : (config.hero.imageUrl ? [config.hero.imageUrl] : []);
+
+                    if (images.length === 0) {
+                      return <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">No Image</div>;
+                    }
+
+                    return (
+                      <>
+                        {images.map((img, idx) => (
+                          <img
+                            key={idx}
+                            src={img}
+                            alt={`Hero ${idx + 1}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentHeroSlide ? 'opacity-100' : 'opacity-0'}`}
+                          />
+                        ))}
+
+                        {/* Carousel Indicators */}
+                        {images.length > 1 && (
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                            {images.map((_, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => setCurrentHeroSlide(idx)}
+                                className={`w-2 h-2 rounded-full transition-all ${idx === currentHeroSlide ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'}`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
           </section>

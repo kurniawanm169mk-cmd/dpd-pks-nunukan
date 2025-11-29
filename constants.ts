@@ -37,6 +37,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     title: "Bersama Kita Wujudkan Perubahan Nyata",
     subtitle: "Bergabunglah dengan gerakan kami untuk menciptakan masyarakat yang adil, makmur, dan berteknologi maju.",
     imageUrl: "https://picsum.photos/1920/1080?random=1",
+    images: ["https://picsum.photos/1920/1080?random=1"],
     ctaText: "Bergabung Sekarang",
     ctaButtonColor: "#2563eb",
     ctaButtonTextColor: "#ffffff",
