@@ -66,6 +66,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             teamTextColor: data.team_text_color || DEFAULT_CONFIG.teamTextColor,
             newsBackgroundColor: data.news_background_color || DEFAULT_CONFIG.newsBackgroundColor,
             newsTextColor: data.news_text_color || DEFAULT_CONFIG.newsTextColor,
+            sectionTitles: data.section_titles || DEFAULT_CONFIG.sectionTitles,
             // Arrays need separate fetching usually, but for now let's assume they are NOT in site_settings JSONB
             // Wait, schema says site_settings has JSONB fields.
             // But Team and News are separate tables in schema!
@@ -155,6 +156,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (newConfig.teamTextColor) settingsUpdate.team_text_color = newConfig.teamTextColor;
       if (newConfig.newsBackgroundColor) settingsUpdate.news_background_color = newConfig.newsBackgroundColor;
       if (newConfig.newsTextColor) settingsUpdate.news_text_color = newConfig.newsTextColor;
+      if (newConfig.sectionTitles) settingsUpdate.section_titles = newConfig.sectionTitles;
 
       if (Object.keys(settingsUpdate).length > 0) {
         await supabase.from('site_settings').update(settingsUpdate).eq('id', 1);

@@ -71,19 +71,33 @@ const PublicPage: React.FC = () => {
     setView('home');
     setSelectedNews(null);
     setSelectedMember(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // iOS Safari compatible scroll
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.documentElement.scrollTop = 0;
+    }, 0);
   };
 
   const navigateToNews = (item: NewsItem) => {
     setSelectedNews(item);
     setView('news-detail');
-    window.scrollTo(0, 0);
+    // iOS Safari compatible scroll
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
   };
 
   const navigateToTeam = (member: TeamMember) => {
     setSelectedMember(member);
     setView('team-detail');
-    window.scrollTo(0, 0);
+    // iOS Safari compatible scroll
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
   };
 
   // Dynamic Styles derived from config
