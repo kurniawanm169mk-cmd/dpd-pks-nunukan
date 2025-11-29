@@ -14,11 +14,15 @@ const AppContent: React.FC = () => {
   );
 };
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 const App: React.FC = () => {
   return (
-    <ConfigProvider>
-      <AppContent />
-    </ConfigProvider>
+    <ErrorBoundary>
+      <ConfigProvider>
+        <AppContent />
+      </ConfigProvider>
+    </ErrorBoundary>
   );
 };
 

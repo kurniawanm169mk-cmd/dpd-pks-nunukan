@@ -20,9 +20,9 @@ const PublicPage: React.FC = () => {
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(usernameInput, passwordInput);
+    const success = await login(usernameInput, passwordInput);
     if (success) {
       setIsLoginOpen(false);
       setUsernameInput('');
