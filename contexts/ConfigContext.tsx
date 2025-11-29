@@ -216,12 +216,19 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         // Update local state with all team data
         setConfigState(prev => ({ ...prev, team: allTeamData }));
 
-        // Handle deletions
-        const currentIds = allTeamData.map(m => m.id);
-        if (currentIds.length > 0) {
-          await supabase.from('team_members').delete().not('id', 'in', `(${currentIds.map(id => `'${id}'`).join(',')})`);
-        } else {
-          await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        // Handle deletions - fetch all current DB team members and delete those not in allTeamData
+        const { data: dbTeamMembers } = await supabase.from('team_members').select('id');
+        if (dbTeamMembers) {
+          const currentIds = allTeamData.map(m => m.id);
+          const idsToDelete = dbTeamMembers
+            .map(dbMember => dbMember.id)
+            .filter(dbId => !currentIds.includes(dbId));
+
+          // Delete each removed member
+          for (const idToDelete of idsToDelete) {
+            const { error } = await supabase.from('team_members').delete().eq('id', idToDelete);
+            if (error) console.error('Error deleting team member:', idToDelete, error);
+          }
         }
       }
 
@@ -271,11 +278,19 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         setConfigState(prev => ({ ...prev, news: allNewsData }));
 
-        const currentIds = allNewsData.map(n => n.id);
-        if (currentIds.length > 0) {
-          await supabase.from('news_items').delete().not('id', 'in', `(${currentIds.map(id => `'${id}'`).join(',')})`);
-        } else {
-          await supabase.from('news_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        // Handle deletions - fetch all current DB news items and delete those not in allNewsData
+        const { data: dbNewsItems } = await supabase.from('news_items').select('id');
+        if (dbNewsItems) {
+          const currentIds = allNewsData.map(n => n.id);
+          const idsToDelete = dbNewsItems
+            .map(dbNews => dbNews.id)
+            .filter(dbId => !currentIds.includes(dbId));
+
+          // Delete each removed news item
+          for (const idToDelete of idsToDelete) {
+            const { error } = await supabase.from('news_items').delete().eq('id', idToDelete);
+            if (error) console.error('Error deleting news item:', idToDelete, error);
+          }
         }
       }
 
@@ -325,11 +340,19 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         setConfigState(prev => ({ ...prev, socialMedia: allSocialData }));
 
-        const currentIds = allSocialData.map(s => s.id);
-        if (currentIds.length > 0) {
-          await supabase.from('social_links').delete().not('id', 'in', `(${currentIds.map(id => `'${id}'`).join(',')})`);
-        } else {
-          await supabase.from('social_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        // Handle deletions - fetch all current DB social links and delete those not in allSocialData
+        const { data: dbSocialLinks } = await supabase.from('social_links').select('id');
+        if (dbSocialLinks) {
+          const currentIds = allSocialData.map(s => s.id);
+          const idsToDelete = dbSocialLinks
+            .map(dbSocial => dbSocial.id)
+            .filter(dbId => !currentIds.includes(dbId));
+
+          // Delete each removed social link
+          for (const idToDelete of idsToDelete) {
+            const { error } = await supabase.from('social_links').delete().eq('id', idToDelete);
+            if (error) console.error('Error deleting social link:', idToDelete, error);
+          }
         }
       }
 

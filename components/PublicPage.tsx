@@ -77,13 +77,13 @@ const PublicPage: React.FC = () => {
   const navigateToNews = (item: NewsItem) => {
     setSelectedNews(item);
     setView('news-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   const navigateToTeam = (member: TeamMember) => {
     setSelectedMember(member);
     setView('team-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   // Dynamic Styles derived from config
