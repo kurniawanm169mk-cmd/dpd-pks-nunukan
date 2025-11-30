@@ -44,38 +44,17 @@ const PublicPage: React.FC = () => {
       if (!link) {
         link = document.createElement('link');
         link.rel = 'icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
+        setSearchResults([]);
+        return;
       }
-      link.href = config.identity.logoUrl;
-    }
-  }, [config.identity.name, config.identity.logoUrl]);
-
-  // Handle URL Params for Deep Linking
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const newsSlug = params.get('news');
-    if (newsSlug && config.news.length > 0) {
-      const newsItem = config.news.find(n => n.slug === newsSlug || n.id === newsSlug);
-      if (newsItem) {
-        navigateToNews(newsItem);
-      }
-    }
-  }, [config.news]);
-
-  // Search Logic
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setSearchResults([]);
-      return;
-    }
-    const lowerQuery = searchQuery.toLowerCase();
-    const results = config.news.filter(item =>
-      item.title.toLowerCase().includes(lowerQuery) ||
-      item.content.toLowerCase().includes(lowerQuery) ||
-      item.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
-    );
-    setSearchResults(results);
-  }, [searchQuery, config.news]);
+      const lowerQuery = searchQuery.toLowerCase();
+      const results = config.news.filter(item =>
+        item.title.toLowerCase().includes(lowerQuery) ||
+        item.content.toLowerCase().includes(lowerQuery) ||
+        item.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
+      );
+      setSearchResults(results);
+    }, [searchQuery, config.news]);
 
   // Hero Auto-slide Effect
   useEffect(() => {
