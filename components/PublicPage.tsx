@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useConfig } from '../contexts/ConfigContext';
 import { Menu, X, Facebook, Twitter, Instagram, Mail, MapPin, Phone, ArrowRight, ChevronRight, Lock, LogIn, Youtube, Linkedin, Globe, Link as LinkIcon, Music, ArrowLeft, Calendar, Search, Star, Share2, Quote, ChevronLeft } from 'lucide-react';
 import { NewsItem, TeamMember } from '../types';
@@ -539,6 +540,30 @@ const PublicPage: React.FC = () => {
       {/* News Detail View */}
       {view === 'news-detail' && selectedNews && (
         <div className="py-12 bg-gray-50 flex-1">
+          {/* Dynamic Meta Tags for Social Sharing */}
+          <Helmet>
+            <title>{selectedNews.title} - DPD PKS Nunukan</title>
+            <meta name="description" content={selectedNews.content.substring(0, 160) + '...'} />
+
+            {/* Open Graph / Facebook */}
+            <meta property="og:type" content="article" />
+            <meta property="og:title" content={selectedNews.title} />
+            <meta property="og:description" content={selectedNews.content.substring(0, 200)} />
+            <meta property="og:image" content={selectedNews.imageUrl || (selectedNews.images && selectedNews.images[0]) || ''} />
+            <meta property="og:url" content={`${window.location.origin}${window.location.pathname}?news=${selectedNews.slug || selectedNews.id}`} />
+            <meta property="og:site_name" content="DPD PKS Nunukan" />
+            <meta property="article:published_time" content={selectedNews.date} />
+            {selectedNews.tags && selectedNews.tags.map(tag => (
+              <meta key={tag} property="article:tag" content={tag} />
+            ))}
+
+            {/* Twitter */}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content={selectedNews.title} />
+            <meta name="twitter:description" content={selectedNews.content.substring(0, 200)} />
+            <meta name="twitter:image" content={selectedNews.imageUrl || (selectedNews.images && selectedNews.images[0]) || ''} />
+          </Helmet>
+
           <div className="container mx-auto px-6">
             <button onClick={navigateToHome} className="mb-6 flex items-center gap-2 text-gray-600 hover:text-primary font-medium transition"><ArrowLeft size={20} /> Kembali ke Beranda</button>
             <article className={`bg-white p-8 md:p-12 shadow-md ${roundedClass}`}>

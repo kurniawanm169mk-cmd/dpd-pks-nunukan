@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { ConfigProvider, useConfig } from './contexts/ConfigContext';
 import PublicPage from './components/PublicPage';
 import AdminPanel from './components/AdminPanel';
@@ -19,9 +20,11 @@ import ErrorBoundary from './components/ErrorBoundary';
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <ConfigProvider>
-        <AppContent />
-      </ConfigProvider>
+      <HelmetProvider>
+        <ConfigProvider>
+          <AppContent />
+        </ConfigProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 };
