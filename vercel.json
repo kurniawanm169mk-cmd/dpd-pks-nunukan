@@ -10,6 +10,12 @@
                 }
             ],
             "destination": "https://service.prerender.io/https://dpd-pks-nunukan.vercel.app/$1?prerenderToken=XCQfQeip7VmDmRP7FfHl"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
-    ]
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
 }
