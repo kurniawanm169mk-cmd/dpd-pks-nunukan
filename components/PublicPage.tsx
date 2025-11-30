@@ -155,7 +155,8 @@ const PublicPage: React.FC = () => {
   const copyNewsLink = () => {
     if (selectedNews) {
       const slug = selectedNews.slug || selectedNews.id;
-      const url = `${window.location.origin}${window.location.pathname}?news=${slug}`;
+      // Use the new /news/slug format for sharing
+      const url = `${window.location.origin}/news/${slug}`;
       navigator.clipboard.writeText(url).then(() => {
         alert('Link berita berhasil disalin!');
       });
