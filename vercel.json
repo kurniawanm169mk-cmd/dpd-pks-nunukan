@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/news/:slug",
+            "destination": "/?news=:slug"
+        },
+        {
             "source": "/(.*)",
             "has": [
                 {
