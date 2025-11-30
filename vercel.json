@@ -6,17 +6,6 @@
         },
         {
             "source": "/(.*)",
-            "has": [
-                {
-                    "type": "header",
-                    "key": "User-Agent",
-                    "value": ".*(bot|crawler|spider|whatsapp|telegram|facebook|twitter|linkedin|pinterest|slack|skype|discord).*"
-                }
-            ],
-            "destination": "https://service.prerender.io/https://dpd-pks-nunukan.vercel.app/$1?prerenderToken=XCQfQeip7VmDmRP7FfHl"
-        },
-        {
-            "source": "/(.*)",
             "destination": "/index.html"
         }
     ],
