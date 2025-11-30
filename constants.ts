@@ -107,6 +107,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     structure: 'Struktur Organisasi',
     news: 'Berita & Kegiatan'
   },
+  mediaQuotes: [],
   news: [
     {
       id: "101",

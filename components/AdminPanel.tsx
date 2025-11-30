@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from '../contexts/ConfigContext';
 import { Save, Loader2, RefreshCw, LogOut } from 'lucide-react';
-
-// Import tab components
 import GeneralTab from './admin/GeneralTab';
 import HeaderFooterTab from './admin/HeaderFooterTab';
 import HeroTab from './admin/HeroTab';
 import AboutTab from './admin/AboutTab';
 import TeamTab from './admin/TeamTab';
 import NewsTab from './admin/NewsTab';
+import MediaQuotesTab from './admin/MediaQuotesTab';
 
 import { SiteConfig } from '../types';
 
 const AdminPanel: React.FC = () => {
   const { config, updateConfig, resetConfig, logout } = useConfig();
-  const [activeTab, setActiveTab] = useState<'general' | 'hero' | 'about' | 'team' | 'news' | 'header_footer'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'hero' | 'about' | 'team' | 'news' | 'media_quotes' | 'header_footer'>('general');
 
   // Local state for manual save
   const [localConfig, setLocalConfig] = useState<SiteConfig>(config);
@@ -125,7 +124,7 @@ const AdminPanel: React.FC = () => {
       {/* Tab Navigation */}
       <div className="px-6 py-3 bg-white border-b overflow-x-auto sticky top-[88px] z-10">
         <div className="flex space-x-2">
-          {['general', 'header_footer', 'hero', 'about', 'team', 'news'].map((tab) => (
+          {['general', 'header_footer', 'hero', 'about', 'team', 'news', 'media_quotes'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
@@ -134,7 +133,7 @@ const AdminPanel: React.FC = () => {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
-              {tab === 'header_footer' ? 'Header & Footer' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === 'header_footer' ? 'Header & Footer' : tab === 'media_quotes' ? 'Kutipan Media' : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
@@ -148,6 +147,7 @@ const AdminPanel: React.FC = () => {
         {activeTab === 'about' && <AboutTab localConfig={localConfig} handleLocalUpdate={handleLocalUpdate} />}
         {activeTab === 'team' && <TeamTab localConfig={localConfig} handleLocalUpdate={handleLocalUpdate} />}
         {activeTab === 'news' && <NewsTab localConfig={localConfig} handleLocalUpdate={handleLocalUpdate} />}
+        {activeTab === 'media_quotes' && <MediaQuotesTab localConfig={localConfig} handleLocalUpdate={handleLocalUpdate} />}
       </div>
     </div>
   );

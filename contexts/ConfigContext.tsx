@@ -93,7 +93,25 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               title: n.title,
               date: n.date,
               content: n.content,
-              imageUrl: n.image_url
+              imageUrl: n.image_url,
+              images: n.images || [],
+              isFeatured: n.is_featured,
+              tags: n.tags || [],
+              slug: n.slug
+            }));
+          }
+
+          // Fetch Media Quotes
+          const { data: quotesData } = await supabase.from('media_quotes').select('*');
+          if (quotesData) {
+            mergedConfig.mediaQuotes = quotesData.map(q => ({
+              id: q.id,
+              content: q.content,
+              source: q.source,
+              author: q.author,
+              date: q.date,
+              url: q.url,
+              imageUrl: q.image_url
             }));
           }
 
@@ -172,8 +190,11 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (newConfig.team) {
         // Separate new items from existing items
-        const newItems = newConfig.team.filter(t => !t.id.includes('-'));
-        const existingItems = newConfig.team.filter(t => t.id.includes('-'));
+        // New items either start with 'new-' or don't have hyphens (legacy timestamp IDs)
+        const isNewItem = (id: string) => id.startsWith('new-') || !id.includes('-');
+
+        const newItems = newConfig.team.filter(t => isNewItem(t.id));
+        const existingItems = newConfig.team.filter(t => !isNewItem(t.id));
 
         let allTeamData = [...existingItems];
 
@@ -235,10 +256,21 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       if (newConfig.news) {
-        const newItems = newConfig.news.filter(n => !n.id.includes('-'));
-        const existingItems = newConfig.news.filter(n => n.id.includes('-'));
+        const isNewItem = (id: string) => id.startsWith('new-') || !id.includes('-');
+        const newItems = newConfig.news.filter(n => isNewItem(n.id));
+        const existingItems = newConfig.news.filter(n => !isNewItem(n.id));
 
         let allNewsData = [...existingItems];
+
+        // Helper to generate slug with random suffix to ensure uniqueness
+        const generateSlug = (title: string) => {
+          const baseSlug = title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
+          const randomSuffix = Math.random().toString(36).substring(2, 7);
+          return `${baseSlug}-${randomSuffix}`;
+        };
 
         // Insert new items
         if (newItems.length > 0) {
@@ -246,7 +278,11 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             title: n.title,
             date: n.date,
             content: n.content,
-            image_url: n.imageUrl
+            image_url: n.imageUrl,
+            images: n.images,
+            is_featured: n.isFeatured,
+            tags: n.tags,
+            slug: n.slug || generateSlug(n.title)
           }));
 
           const { data, error } = await supabase.from('news_items').insert(newNewsData).select();
@@ -258,20 +294,30 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               title: n.title,
               date: n.date,
               content: n.content,
-              imageUrl: n.image_url
+              imageUrl: n.image_url,
+              images: n.images,
+              isFeatured: n.is_featured,
+              tags: n.tags,
+              slug: n.slug
             }))];
           }
         }
 
         // Update existing items
         for (const item of existingItems) {
+          // Only generate slug if missing, otherwise keep existing
+          const slug = item.slug || generateSlug(item.title);
           const { error } = await supabase
             .from('news_items')
             .update({
               title: item.title,
               date: item.date,
               content: item.content,
-              image_url: item.imageUrl
+              image_url: item.imageUrl,
+              images: item.images,
+              is_featured: item.isFeatured,
+              tags: item.tags,
+              slug: slug
             })
             .eq('id', item.id);
 
@@ -296,9 +342,78 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       }
 
+      if (newConfig.mediaQuotes) {
+        const isNewItem = (id: string) => id.startsWith('new-') || !id.includes('-');
+        const newItems = newConfig.mediaQuotes.filter(q => isNewItem(q.id));
+        const existingItems = newConfig.mediaQuotes.filter(q => !isNewItem(q.id));
+
+        let allQuotesData = [...existingItems];
+
+        // Insert new items
+        if (newItems.length > 0) {
+          const newQuotesData = newItems.map(q => ({
+            content: q.content,
+            source: q.source,
+            author: q.author,
+            date: q.date,
+            url: q.url,
+            image_url: q.imageUrl
+          }));
+
+          const { data, error } = await supabase.from('media_quotes').insert(newQuotesData).select();
+          if (error) {
+            console.error('Error inserting quotes:', error);
+          } else if (data) {
+            allQuotesData = [...allQuotesData, ...data.map(q => ({
+              id: q.id,
+              content: q.content,
+              source: q.source,
+              author: q.author,
+              date: q.date,
+              url: q.url,
+              imageUrl: q.image_url
+            }))];
+          }
+        }
+
+        // Update existing items
+        for (const item of existingItems) {
+          const { error } = await supabase
+            .from('media_quotes')
+            .update({
+              content: item.content,
+              source: item.source,
+              author: item.author,
+              date: item.date,
+              url: item.url,
+              image_url: item.imageUrl
+            })
+            .eq('id', item.id);
+
+          if (error) console.error('Error updating quote:', error);
+        }
+
+        setConfigState(prev => ({ ...prev, mediaQuotes: allQuotesData }));
+
+        // Handle deletions
+        const { data: dbQuotes } = await supabase.from('media_quotes').select('id');
+        if (dbQuotes) {
+          const currentIds = allQuotesData.map(q => q.id);
+          const idsToDelete = dbQuotes
+            .map(dbQuote => dbQuote.id)
+            .filter(dbId => !currentIds.includes(dbId));
+
+          for (const idToDelete of idsToDelete) {
+            const { error } = await supabase.from('media_quotes').delete().eq('id', idToDelete);
+            if (error) console.error('Error deleting quote:', idToDelete, error);
+          }
+        }
+      }
+
       if (newConfig.socialMedia) {
-        const newItems = newConfig.socialMedia.filter(s => !s.id.includes('-'));
-        const existingItems = newConfig.socialMedia.filter(s => s.id.includes('-'));
+        const isNewItem = (id: string) => id.startsWith('new-') || !id.includes('-');
+        const newItems = newConfig.socialMedia.filter(s => isNewItem(s.id));
+        const existingItems = newConfig.socialMedia.filter(s => !isNewItem(s.id));
 
         let allSocialData = [...existingItems];
 

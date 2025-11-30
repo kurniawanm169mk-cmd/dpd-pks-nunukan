@@ -11,7 +11,7 @@ interface HeaderFooterTabProps {
 const HeaderFooterTab: React.FC<HeaderFooterTabProps> = ({ localConfig, handleLocalUpdate }) => {
     const addSocial = () => {
         const newSocial: SocialLink = {
-            id: Date.now().toString(),
+            id: `new-${Date.now()}`,
             platform: 'Website',
             url: 'https://'
         };

@@ -11,10 +11,10 @@ interface TeamTabProps {
 const TeamTab: React.FC<TeamTabProps> = ({ localConfig, handleLocalUpdate }) => {
     const addMember = () => {
         const newMember: TeamMember = {
-            id: Date.now().toString(),
+            id: `new-${Date.now()}`,
             name: "Nama Anggota",
             role: "Jabatan",
-            photoUrl: "https://via.placeholder.com/150",
+            photoUrl: "https://placehold.co/150",
             description: "Deskripsi singkat tentang anggota ini..."
         };
         handleLocalUpdate({ team: [...localConfig.team, newMember] });

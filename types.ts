@@ -12,6 +12,20 @@ export interface NewsItem {
   date: string;
   content: string;
   imageUrl: string;
+  images?: string[]; // Multiple images
+  isFeatured?: boolean;
+  tags?: string[];
+  slug?: string;
+}
+
+export interface MediaQuote {
+  id: string;
+  content: string;
+  source: string;
+  author?: string;
+  date?: string;
+  url?: string;
+  imageUrl?: string;
 }
 
 export interface SocialLink {
@@ -97,6 +111,7 @@ export interface SiteConfig {
     structure: string;
     news: string;
   };
+  mediaQuotes: MediaQuote[];
 }
 
 export interface ConfigContextType {
