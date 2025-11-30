@@ -89,6 +89,46 @@ const PublicPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [config.hero.images, config.hero.imageUrl]);
 
+  // Helper function to update meta tags for social media preview
+  const updateMetaTag = (property: string, content: string) => {
+    let tag = document.querySelector(`meta[property="${property}"]`);
+    if (!tag) {
+      tag = document.createElement('meta');
+      tag.setAttribute('property', property);
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', content);
+  };
+
+  // Update meta tags when news detail is viewed (for Prerender.io/social media crawlers)
+  useEffect(() => {
+    if (view === 'news-detail' && selectedNews) {
+      // Update page title
+      document.title = `${selectedNews.title} - ${config.identity.name}`;
+
+      // Update Open Graph meta tags for social media preview
+      updateMetaTag('og:title', selectedNews.title);
+      updateMetaTag('og:description', selectedNews.content.substring(0, 160) + '...');
+      updateMetaTag('og:image', selectedNews.imageUrl);
+      updateMetaTag('og:url', window.location.href);
+      updateMetaTag('og:type', 'article');
+
+      // Twitter Card tags
+      updateMetaTag('twitter:card', 'summary_large_image');
+      updateMetaTag('twitter:title', selectedNews.title);
+      updateMetaTag('twitter:description', selectedNews.content.substring(0, 160) + '...');
+      updateMetaTag('twitter:image', selectedNews.imageUrl);
+    } else if (view === 'home') {
+      // Reset to default meta tags when returning home
+      document.title = config.identity.name;
+      updateMetaTag('og:title', config.identity.name);
+      updateMetaTag('og:description', config.identity.tagline || 'Dewan Pimpinan Daerah');
+      updateMetaTag('og:image', config.identity.logoUrl || '');
+      updateMetaTag('og:url', window.location.origin);
+      updateMetaTag('og:type', 'website');
+    }
+  }, [view, selectedNews, config.identity.name, config.identity.tagline, config.identity.logoUrl]);
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await login(usernameInput, passwordInput);
