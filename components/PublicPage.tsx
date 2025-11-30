@@ -232,9 +232,9 @@ const PublicPage: React.FC = () => {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 cursor-pointer flex-shrink-0" onClick={navigateToHome}>
             {config.identity.logoUrl && <img src={config.identity.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />}
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold leading-tight">{config.identity.name}</h1>
-              {config.identity.tagline && <p className="text-xs opacity-80 font-medium">{config.identity.tagline}</p>}
+            <div>
+              <h1 className="text-base sm:text-xl font-bold leading-tight">{config.identity.name}</h1>
+              {config.identity.tagline && <p className="text-[10px] sm:text-xs opacity-80 font-medium">{config.identity.tagline}</p>}
             </div>
           </div>
 
