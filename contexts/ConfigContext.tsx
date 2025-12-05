@@ -139,6 +139,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Unexpected error loading config:', err);
       } finally {
         setLoading(false);
+        // Signal Prerender.io that the page is ready
+        (window as any).prerenderReady = true;
       }
     };
 
