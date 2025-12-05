@@ -157,6 +157,19 @@ const PublicPage: React.FC = () => {
     }
   }, [view, selectedNews, config.identity.name, config.identity.tagline, config.identity.logoUrl]);
 
+  // Fallback timeout to ensure prerenderReady is always set eventually
+  // This prevents Prerender.io from timing out if something goes wrong (e.g. news not found)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!(window as any).prerenderReady) {
+        console.warn('Prerender timeout reached, forcing ready state.');
+        (window as any).prerenderReady = true;
+      }
+    }, 10000); // 10 seconds max wait
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await login(usernameInput, passwordInput);
