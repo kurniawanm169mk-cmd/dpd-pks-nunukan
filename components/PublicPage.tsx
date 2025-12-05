@@ -52,8 +52,19 @@ const PublicPage: React.FC = () => {
 
   // Handle URL Params for Deep Linking
   useEffect(() => {
+    // Check query param (legacy/direct)
     const params = new URLSearchParams(window.location.search);
-    const newsSlug = params.get('news');
+    let newsSlug = params.get('news');
+
+    // Check pathname for clean URL /news/:slug
+    if (!newsSlug && window.location.pathname.startsWith('/news/')) {
+      const parts = window.location.pathname.split('/');
+      // /news/slug -> ["", "news", "slug"]
+      if (parts.length >= 3) {
+        newsSlug = parts[2];
+      }
+    }
+
     if (newsSlug && config.news.length > 0) {
       const newsItem = config.news.find(n => n.slug === newsSlug || n.id === newsSlug);
       if (newsItem) {
@@ -136,7 +147,10 @@ const PublicPage: React.FC = () => {
     }
 
     // Signal Prerender.io that the page is ready (after meta tags are set)
-    if (view === 'home' || (view === 'news-detail' && selectedNews)) {
+    // CRITICAL: Do NOT set ready if we are on a news URL but haven't loaded the news yet.
+    const isNewsUrl = window.location.pathname.startsWith('/news/') || new URLSearchParams(window.location.search).has('news');
+
+    if ((view === 'news-detail' && selectedNews) || (view === 'home' && !isNewsUrl)) {
       setTimeout(() => {
         (window as any).prerenderReady = true;
       }, 500); // Small buffer to ensure DOM is painted
