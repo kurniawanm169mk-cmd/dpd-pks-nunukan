@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useConfig } from '../contexts/ConfigContext';
 import { Menu, X, Facebook, Twitter, Instagram, Mail, MapPin, Phone, ArrowRight, ChevronRight, Lock, LogIn, Youtube, Linkedin, Globe, Link as LinkIcon, Music, ArrowLeft, Calendar, Search, Star, Share2, Quote, ChevronLeft } from 'lucide-react';
 import { NewsItem, TeamMember } from '../types';
@@ -108,11 +107,17 @@ const PublicPage: React.FC = () => {
   }, [config.hero.images, config.hero.imageUrl]);
 
   // Helper function to update meta tags for social media preview
-  const updateMetaTag = (property: string, content: string) => {
-    let tag = document.querySelector(`meta[property="${property}"]`);
+  const updateMetaTag = (key: string, content: string) => {
+    // Try to find by property (OG tags)
+    let tag = document.querySelector(`meta[property="${key}"]`);
+    // Try to find by name (Twitter tags, description)
+    if (!tag) {
+      tag = document.querySelector(`meta[name="${key}"]`);
+    }
+
     if (!tag) {
       tag = document.createElement('meta');
-      tag.setAttribute('property', property);
+      tag.setAttribute('property', key); // Default to property if creating new
       document.head.appendChild(tag);
     }
     tag.setAttribute('content', content);
@@ -150,12 +155,20 @@ const PublicPage: React.FC = () => {
     // CRITICAL: Do NOT set ready if we are on a news URL but haven't loaded the news yet.
     const isNewsUrl = window.location.pathname.startsWith('/news/') || new URLSearchParams(window.location.search).has('news');
 
-    if ((view === 'news-detail' && selectedNews) || (view === 'home' && !isNewsUrl)) {
+    // Check if we are done loading:
+    // 1. If Home view and NOT a news URL -> Ready
+    // 2. If News Detail view and News is loaded -> Ready
+    // 3. If News URL but config is loaded and News NOT found -> Ready (fallback to Home/404 state to avoid timeout)
+
+    const newsSlug = new URLSearchParams(window.location.search).get('news') || (window.location.pathname.startsWith('/news/') ? window.location.pathname.split('/')[2] : null);
+    const isNewsNotFound = isNewsUrl && config.news.length > 0 && newsSlug && !config.news.find(n => n.slug === newsSlug || n.id === newsSlug);
+
+    if ((view === 'news-detail' && selectedNews) || (view === 'home' && !isNewsUrl) || isNewsNotFound) {
       setTimeout(() => {
         (window as any).prerenderReady = true;
       }, 500); // Small buffer to ensure DOM is painted
     }
-  }, [view, selectedNews, config.identity.name, config.identity.tagline, config.identity.logoUrl]);
+  }, [view, selectedNews, config.identity.name, config.identity.tagline, config.identity.logoUrl, config.news]);
 
   // Fallback timeout to ensure prerenderReady is always set eventually
   // This prevents Prerender.io from timing out if something goes wrong (e.g. news not found)
@@ -626,13 +639,6 @@ const PublicPage: React.FC = () => {
       {/* News Detail View */}
       {view === 'news-detail' && selectedNews && (
         <div className="py-12 bg-gray-50 flex-1">
-          {/* Dynamic Meta Tags for Social Sharing */}
-          <Helmet>
-            <title>{selectedNews.title} - DPD PKS Nunukan</title>
-            <meta name="description" content={selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 160) + '...'} />
-            {selectedNews.metaKeywords && <meta name="keywords" content={selectedNews.metaKeywords} />}
-          </Helmet>
-
           <div className="container mx-auto px-6">
             <button onClick={navigateToHome} className="mb-6 flex items-center gap-2 text-gray-600 hover:text-primary font-medium transition"><ArrowLeft size={20} /> Kembali ke Beranda</button>
             <article className={`bg-white p-8 md:p-12 shadow-md ${roundedClass}`}>
