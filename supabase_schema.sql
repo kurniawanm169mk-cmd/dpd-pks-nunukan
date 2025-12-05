@@ -93,3 +93,9 @@ create policy "Allow authenticated insert/update/delete" on public.social_links
 -- You must create a bucket named 'images' in the Supabase Dashboard -> Storage.
 -- Make sure it is Public.
 -- Add a policy to allow authenticated uploads.
+
+-- MIGRATION: Add order_index to team_members
+alter table public.team_members add column if not exists order_index int default 0;
+
+-- MIGRATION: Add order_index to news_items
+alter table public.news_items add column if not exists order_index int default 0;

@@ -4,6 +4,7 @@ export interface TeamMember {
   role: string;
   photoUrl: string;
   description?: string;
+  orderIndex?: number;
 }
 
 export interface NewsItem {
@@ -19,6 +20,7 @@ export interface NewsItem {
   status?: 'published' | 'draft';
   metaDescription?: string;
   metaKeywords?: string;
+  orderIndex?: number;
 }
 
 export interface MediaQuote {

@@ -1,21 +1,130 @@
 import React from 'react';
-import { Users, Plus, Trash } from 'lucide-react';
+import { Users, Plus, Trash, GripVertical } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
 import { SiteConfig, TeamMember } from '../../types';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TeamTabProps {
     localConfig: SiteConfig;
     handleLocalUpdate: (updates: Partial<SiteConfig>) => void;
 }
 
+// Sortable Item Component
+const SortableTeamMember = ({ member, updateMember, removeMember }: { member: TeamMember, updateMember: any, removeMember: any }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id: member.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="bg-white p-5 rounded-2xl border-2 border-gray-200 hover:border-primary/30 transition shadow-sm relative group">
+            <div className="absolute top-5 left-5 cursor-grab active:cursor-grabbing text-gray-400 hover:text-primary" {...attributes} {...(listeners || {})}>
+                <GripVertical size={20} />
+            </div>
+
+            <div className="flex justify-end mb-3 pl-8">
+                <button
+                    onClick={() => removeMember(member.id)}
+                    className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-lg hover:bg-red-100 transition flex items-center gap-1"
+                >
+                    <Trash size={16} />
+                    <span className="text-xs font-semibold">Hapus</span>
+                </button>
+            </div>
+
+            <div className="grid md:grid-cols-[180px,1fr] gap-5 pl-8">
+                {/* Photo Upload */}
+                <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-2">Foto Anggota</label>
+                    <ImageUpload
+                        currentImageUrl={member.photoUrl}
+                        onUpload={(url) => updateMember(member.id, 'photoUrl', url)}
+                        label=""
+                        bucketName="images"
+                        layout="vertical"
+                    />
+                </div>
+
+                {/* Member Info */}
+                <div className="space-y-3">
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap</label>
+                            <input
+                                type="text"
+                                placeholder="Nama Anggota"
+                                className="w-full p-2.5 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
+                                value={member.name}
+                                onChange={(e) => updateMember(member.id, 'name', e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Jabatan</label>
+                            <input
+                                type="text"
+                                placeholder="Jabatan"
+                                className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
+                                value={member.role}
+                                onChange={(e) => updateMember(member.id, 'role', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Deskripsi/Bio</label>
+                        <textarea
+                            placeholder="Deskripsi singkat tentang anggota..."
+                            className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                            rows={3}
+                            value={member.description || ''}
+                            onChange={(e) => updateMember(member.id, 'description', e.target.value)}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const TeamTab: React.FC<TeamTabProps> = ({ localConfig, handleLocalUpdate }) => {
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
     const addMember = () => {
         const newMember: TeamMember = {
             id: `new-${Date.now()}`,
             name: "Nama Anggota",
             role: "Jabatan",
             photoUrl: "https://placehold.co/150",
-            description: "Deskripsi singkat tentang anggota ini..."
+            description: "Deskripsi singkat tentang anggota ini...",
+            orderIndex: localConfig.team.length // Add to end
         };
         handleLocalUpdate({ team: [...localConfig.team, newMember] });
     };
@@ -27,6 +136,25 @@ const TeamTab: React.FC<TeamTabProps> = ({ localConfig, handleLocalUpdate }) => 
 
     const removeMember = (id: string) => {
         handleLocalUpdate({ team: localConfig.team.filter(m => m.id !== id) });
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = localConfig.team.findIndex((item) => item.id === active.id);
+            const newIndex = localConfig.team.findIndex((item) => item.id === over.id);
+
+            const newTeam = arrayMove(localConfig.team, oldIndex, newIndex);
+
+            // Update orderIndex for all items
+            const reorderedTeam = newTeam.map((item, index) => ({
+                ...item,
+                orderIndex: index
+            }));
+
+            handleLocalUpdate({ team: reorderedTeam });
+        }
     };
 
     return (
@@ -115,69 +243,25 @@ const TeamTab: React.FC<TeamTabProps> = ({ localConfig, handleLocalUpdate }) => 
 
             {/* Team Members */}
             <div className="space-y-4">
-                {localConfig.team.map((member) => (
-                    <div key={member.id} className="bg-white p-5 rounded-2xl border-2 border-gray-200 hover:border-primary/30 transition shadow-sm">
-                        <div className="flex justify-end mb-3">
-                            <button
-                                onClick={() => removeMember(member.id)}
-                                className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-lg hover:bg-red-100 transition flex items-center gap-1"
-                            >
-                                <Trash size={16} />
-                                <span className="text-xs font-semibold">Hapus</span>
-                            </button>
-                        </div>
-
-                        <div className="grid md:grid-cols-[180px,1fr] gap-5">
-                            {/* Photo Upload */}
-                            <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-2">Foto Anggota</label>
-                                <ImageUpload
-                                    currentImageUrl={member.photoUrl}
-                                    onUpload={(url) => updateMember(member.id, 'photoUrl', url)}
-                                    label=""
-                                    bucketName="images"
-                                    layout="vertical"
-                                />
-                            </div>
-
-                            {/* Member Info */}
-                            <div className="space-y-3">
-                                <div className="grid md:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Nama Anggota"
-                                            className="w-full p-2.5 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
-                                            value={member.name}
-                                            onChange={(e) => updateMember(member.id, 'name', e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">Jabatan</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Jabatan"
-                                            className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
-                                            value={member.role}
-                                            onChange={(e) => updateMember(member.id, 'role', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">Deskripsi/Bio</label>
-                                    <textarea
-                                        placeholder="Deskripsi singkat tentang anggota..."
-                                        className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
-                                        rows={3}
-                                        value={member.description || ''}
-                                        onChange={(e) => updateMember(member.id, 'description', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext
+                        items={localConfig.team.map(m => m.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {localConfig.team.map((member) => (
+                            <SortableTeamMember
+                                key={member.id}
+                                member={member}
+                                updateMember={updateMember}
+                                removeMember={removeMember}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
 
                 {localConfig.team.length === 0 && (
                     <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300">

@@ -510,15 +510,14 @@ const PublicPage: React.FC = () => {
             </section>
           )}
 
-          {/* Team/Structure Section (Moved Below News) */}
-          <section id="team" className="py-20 transition-colors" style={{ backgroundColor: config.teamBackgroundColor || '#ffffff', color: config.teamTextColor || '#111827' }}>
+          {/* Team Section */}
+          <section id="team" className="py-16 bg-gray-50" style={{ backgroundColor: config.teamBackgroundColor || '#f9fafb' }}>
             <div className="container mx-auto px-6">
-              <div className="text-center max-w-2xl mx-auto mb-16">
-                <h3 className="text-3xl font-bold mb-4">{config.sectionTitles?.structure || 'Struktur Organisasi'}</h3>
-                <p className="opacity-80">Para pemimpin yang berdedikasi untuk membawa perubahan positif.</p>
+              <div className="text-center mb-12">
+                <h3 className="text-3xl font-bold mb-4" style={{ color: config.teamTextColor || 'inherit' }}>{config.sectionTitles?.structure || 'Struktur Organisasi'}</h3>
+                <p className="opacity-80" style={{ color: config.teamTextColor || 'inherit' }}>{config.sectionDescriptions?.structure || 'Para pemimpin yang berdedikasi untuk membawa perubahan positif.'}</p>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              <div className="grid md:grid-cols-4 gap-8">
                 {config.team.map((member) => (
                   <div key={member.id} className="group text-center cursor-pointer" onClick={() => navigateToTeam(member)}>
                     <div className={`relative overflow-hidden mb-4 bg-gray-100 aspect-square ${roundedClass}`}>

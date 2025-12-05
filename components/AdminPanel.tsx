@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from '../contexts/ConfigContext';
-import { Save, Loader2, RefreshCw, LogOut } from 'lucide-react';
+import { Save, Loader2, LogOut } from 'lucide-react';
 import GeneralTab from './admin/GeneralTab';
 import HeaderFooterTab from './admin/HeaderFooterTab';
 import HeroTab from './admin/HeroTab';
@@ -12,7 +12,7 @@ import MediaQuotesTab from './admin/MediaQuotesTab';
 import { SiteConfig } from '../types';
 
 const AdminPanel: React.FC = () => {
-  const { config, updateConfig, resetConfig, logout } = useConfig();
+  const { config, updateConfig, logout } = useConfig();
   const [activeTab, setActiveTab] = useState<'general' | 'hero' | 'about' | 'team' | 'news' | 'media_quotes' | 'header_footer'>('general');
 
   // Local state for manual save
@@ -103,13 +103,6 @@ const AdminPanel: React.FC = () => {
                 )}
               </button>
             )}
-            <button
-              onClick={resetConfig}
-              className="p-2.5 text-gray-500 hover:text-red-600 transition rounded-lg hover:bg-gray-100"
-              title="Reset"
-            >
-              <RefreshCw size={18} />
-            </button>
             <button
               onClick={logout}
               className="p-2.5 text-red-600 hover:text-red-800 rounded-lg hover:bg-red-50"
