@@ -631,24 +631,6 @@ const PublicPage: React.FC = () => {
             <title>{selectedNews.title} - DPD PKS Nunukan</title>
             <meta name="description" content={selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 160) + '...'} />
             {selectedNews.metaKeywords && <meta name="keywords" content={selectedNews.metaKeywords} />}
-
-            {/* Open Graph / Facebook */}
-            <meta property="og:type" content="article" />
-            <meta property="og:title" content={selectedNews.title} />
-            <meta property="og:description" content={selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 200)} />
-            <meta property="og:image" content={selectedNews.imageUrl || (selectedNews.images && selectedNews.images[0]) || ''} />
-            <meta property="og:url" content={`${window.location.origin}${window.location.pathname}?news=${selectedNews.slug || selectedNews.id}`} />
-            <meta property="og:site_name" content="DPD PKS Nunukan" />
-            <meta property="article:published_time" content={selectedNews.date} />
-            {selectedNews.tags && selectedNews.tags.map(tag => (
-              <meta key={tag} property="article:tag" content={tag} />
-            ))}
-
-            {/* Twitter */}
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" content={selectedNews.title} />
-            <meta name="twitter:description" content={selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 200)} />
-            <meta name="twitter:image" content={selectedNews.imageUrl || (selectedNews.images && selectedNews.images[0]) || ''} />
           </Helmet>
 
           <div className="container mx-auto px-6">
