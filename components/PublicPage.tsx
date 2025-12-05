@@ -134,6 +134,13 @@ const PublicPage: React.FC = () => {
       updateMetaTag('og:url', window.location.origin);
       updateMetaTag('og:type', 'website');
     }
+
+    // Signal Prerender.io that the page is ready (after meta tags are set)
+    if (view === 'home' || (view === 'news-detail' && selectedNews)) {
+      setTimeout(() => {
+        (window as any).prerenderReady = true;
+      }, 500); // Small buffer to ensure DOM is painted
+    }
   }, [view, selectedNews, config.identity.name, config.identity.tagline, config.identity.logoUrl]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
