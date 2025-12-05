@@ -75,6 +75,44 @@ const TeamTab: React.FC<TeamTabProps> = ({ localConfig, handleLocalUpdate }) => 
                 </div>
             </div>
 
+            {/* Section Title & Description */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h4 className="text-md font-semibold mb-4">Judul & Deskripsi Seksi</h4>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Judul Seksi</label>
+                        <input
+                            type="text"
+                            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                            placeholder="Struktur Organisasi"
+                            value={localConfig.sectionTitles?.structure || 'Struktur Organisasi'}
+                            onChange={(e) => handleLocalUpdate({
+                                sectionTitles: {
+                                    ...localConfig.sectionTitles,
+                                    structure: e.target.value
+                                }
+                            })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi Seksi</label>
+                        <textarea
+                            className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                            placeholder="Deskripsi singkat untuk seksi struktur organisasi..."
+                            rows={2}
+                            value={localConfig.sectionDescriptions?.structure || ''}
+                            onChange={(e) => handleLocalUpdate({
+                                sectionDescriptions: {
+                                    ...localConfig.sectionDescriptions,
+                                    structure: e.target.value,
+                                    news: localConfig.sectionDescriptions?.news || ''
+                                }
+                            })}
+                        />
+                    </div>
+                </div>
+            </div>
+
             {/* Team Members */}
             <div className="space-y-4">
                 {localConfig.team.map((member) => (

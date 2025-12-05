@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { FileText, Plus, Trash, Calendar, Star, Tag, Image as ImageIcon, X } from 'lucide-react';
+import { FileText, Plus, Trash, Calendar, Star, Tag, Image as ImageIcon, X, Globe, Eye, EyeOff } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
 import { SiteConfig, NewsItem } from '../../types';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 interface NewsTabProps {
     localConfig: SiteConfig;
@@ -18,7 +20,10 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
             imageUrl: "https://placehold.co/600x400",
             images: [],
             tags: [],
-            isFeatured: false
+            isFeatured: false,
+            status: 'draft',
+            metaDescription: '',
+            metaKeywords: ''
         };
         handleLocalUpdate({ news: [newItem, ...localConfig.news] });
     };
@@ -52,6 +57,15 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
     const handleRemoveImage = (id: string, indexToRemove: number, currentImages: string[]) => {
         const newImages = currentImages.filter((_, idx) => idx !== indexToRemove);
         updateNews(id, 'images', newImages);
+    };
+
+    const modules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['link', 'clean']
+        ],
     };
 
     return (
@@ -100,20 +114,68 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
                 </div>
             </div>
 
+            {/* Section Title & Description */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h4 className="text-md font-semibold mb-4">Judul & Deskripsi Seksi</h4>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Judul Seksi</label>
+                        <input
+                            type="text"
+                            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                            placeholder="Berita & Kegiatan"
+                            value={localConfig.sectionTitles?.news || 'Berita & Kegiatan'}
+                            onChange={(e) => handleLocalUpdate({
+                                sectionTitles: {
+                                    ...localConfig.sectionTitles,
+                                    news: e.target.value
+                                }
+                            })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi Seksi</label>
+                        <textarea
+                            className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                            placeholder="Deskripsi singkat untuk seksi berita..."
+                            rows={2}
+                            value={localConfig.sectionDescriptions?.news || ''}
+                            onChange={(e) => handleLocalUpdate({
+                                sectionDescriptions: {
+                                    ...localConfig.sectionDescriptions,
+                                    news: e.target.value,
+                                    structure: localConfig.sectionDescriptions?.structure || ''
+                                }
+                            })}
+                        />
+                    </div>
+                </div>
+            </div>
+
             {/* News Items */}
             <div className="space-y-4">
                 {localConfig.news.map((item) => (
-                    <div key={item.id} className={`bg-white p-5 rounded-2xl border-2 transition shadow-sm ${item.isFeatured ? 'border-yellow-400 ring-1 ring-yellow-400' : 'border-gray-200 hover:border-primary/30'}`}>
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-4">
+                    <div key={item.id} className={`bg-white p-5 rounded-2xl border-2 transition shadow-sm overflow-hidden ${item.isFeatured ? 'border-yellow-400 ring-1 ring-yellow-400' : 'border-gray-200 hover:border-primary/30'}`}>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                            <div className="flex items-center gap-2 sm:gap-4 flex-wrap w-full sm:w-auto">
                                 <div className="flex items-center gap-2 text-gray-600">
                                     <Calendar size={16} />
                                     <input
                                         type="date"
-                                        className="text-sm border rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none"
+                                        className="text-sm border rounded-lg px-2 sm:px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none"
                                         value={item.date}
                                         onChange={(e) => updateNews(item.id, 'date', e.target.value)}
                                     />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={item.status || 'draft'}
+                                        onChange={(e) => updateNews(item.id, 'status', e.target.value)}
+                                        className={`text-xs sm:text-sm border rounded-lg px-2 sm:px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none font-medium ${item.status === 'published' ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-500 bg-gray-50 border-gray-200'}`}
+                                    >
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                    </select>
                                 </div>
                                 <label className="flex items-center gap-2 cursor-pointer select-none">
                                     <input
@@ -122,15 +184,15 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
                                         onChange={(e) => updateNews(item.id, 'isFeatured', e.target.checked)}
                                         className="w-4 h-4 text-yellow-500 rounded focus:ring-yellow-500"
                                     />
-                                    <span className={`text-sm font-medium flex items-center gap-1 ${item.isFeatured ? 'text-yellow-600' : 'text-gray-500'}`}>
+                                    <span className={`text-xs sm:text-sm font-medium flex items-center gap-1 ${item.isFeatured ? 'text-yellow-600' : 'text-gray-500'}`}>
                                         <Star size={14} fill={item.isFeatured ? "currentColor" : "none"} />
-                                        Berita Pilihan
+                                        <span className="hidden sm:inline">Berita Pilihan</span>
                                     </span>
                                 </label>
                             </div>
                             <button
                                 onClick={() => removeNews(item.id)}
-                                className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-lg hover:bg-red-100 transition flex items-center gap-1"
+                                className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-lg hover:bg-red-100 transition flex items-center gap-1 w-full sm:w-auto justify-center"
                             >
                                 <Trash size={16} />
                                 <span className="text-xs font-semibold">Hapus</span>
@@ -183,7 +245,7 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
                             </div>
 
                             {/* News Content */}
-                            <div className="space-y-4">
+                            <div className="space-y-4 min-w-0">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Judul Berita</label>
                                     <input
@@ -224,9 +286,6 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
                                             updateNews(item.id, 'slug', slug);
                                         }}
                                     />
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Format: huruf kecil, gunakan tanda hubung (-). Contoh: <span className="font-mono bg-gray-100 px-1">dpd-pks-gelar-rakerwil-2024</span>
-                                    </p>
                                 </div>
 
                                 <div>
@@ -244,13 +303,46 @@ const NewsTab: React.FC<NewsTabProps> = ({ localConfig, handleLocalUpdate }) => 
 
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Konten Berita</label>
-                                    <textarea
-                                        className="w-full p-2.5 border rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-primary outline-none resize-none"
-                                        placeholder="Isi berita..."
-                                        rows={8}
-                                        value={item.content}
-                                        onChange={(e) => updateNews(item.id, 'content', e.target.value)}
-                                    />
+                                    <div className="bg-white rounded-lg border overflow-hidden">
+                                        <ReactQuill
+                                            theme="snow"
+                                            value={item.content}
+                                            onChange={(content) => updateNews(item.id, 'content', content)}
+                                            modules={modules}
+                                            className="h-64 mb-12"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* SEO Fields */}
+                                <div className="pt-4 border-t mt-4">
+                                    <h5 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                        <Globe size={14} /> SEO & Meta Data
+                                    </h5>
+                                    <div className="grid gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">Meta Description</label>
+                                            <textarea
+                                                className="w-full p-2.5 border rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-primary outline-none resize-none"
+                                                placeholder="Deskripsi singkat untuk mesin pencari (maks 160 karakter)..."
+                                                rows={2}
+                                                maxLength={160}
+                                                value={item.metaDescription || ''}
+                                                onChange={(e) => updateNews(item.id, 'metaDescription', e.target.value)}
+                                            />
+                                            <p className="text-[10px] text-gray-400 text-right">{(item.metaDescription || '').length}/160</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">Meta Keywords</label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
+                                                placeholder="keyword1, keyword2, keyword3"
+                                                value={item.metaKeywords || ''}
+                                                onChange={(e) => updateNews(item.id, 'metaKeywords', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

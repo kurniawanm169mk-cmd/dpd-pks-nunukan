@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import ImageCropModal from './ImageCropModal';
+import imageCompression from 'browser-image-compression';
 
 interface ImageUploadProps {
     currentImageUrl?: string;
@@ -47,14 +48,25 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         setUploading(true);
 
         try {
+            // Compress image
+            const compressionOptions = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true
+            };
+
+            // Convert Blob to File for compression
+            const file = new File([croppedBlob], selectedFileName, { type: croppedBlob.type });
+            const compressedFile = await imageCompression(file, compressionOptions);
+
             const fileExt = selectedFileName.split('.').pop();
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
 
-            // Upload cropped blob to Supabase
+            // Upload compressed file to Supabase
             const { error: uploadError } = await supabase.storage
                 .from(bucketName)
-                .upload(filePath, croppedBlob);
+                .upload(filePath, compressedFile);
 
             if (uploadError) {
                 throw uploadError;

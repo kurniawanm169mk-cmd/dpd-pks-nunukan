@@ -3,7 +3,7 @@ export interface TeamMember {
   name: string;
   role: string;
   photoUrl: string;
-  description?: string; // Added for detail view
+  description?: string;
 }
 
 export interface NewsItem {
@@ -16,6 +16,9 @@ export interface NewsItem {
   isFeatured?: boolean;
   tags?: string[];
   slug?: string;
+  status?: 'published' | 'draft';
+  metaDescription?: string;
+  metaKeywords?: string;
 }
 
 export interface MediaQuote {
@@ -108,6 +111,10 @@ export interface SiteConfig {
   newsTitleColor?: string;
   aboutTitleColor?: string;
   sectionTitles: {
+    structure: string;
+    news: string;
+  };
+  sectionDescriptions?: {
     structure: string;
     news: string;
   };
