@@ -96,6 +96,8 @@ export interface SiteConfig {
     imageUrl: string;
     backgroundColor: string;
     textColor: string;
+    imageOverlayTitle?: string;
+    imageOverlaySubtitle?: string;
   };
   contact: {
     address: string;

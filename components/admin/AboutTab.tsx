@@ -67,6 +67,26 @@ const AboutTab: React.FC<AboutTabProps> = ({ localConfig, handleLocalUpdate }) =
                         bucketName="images"
                     />
                 </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Judul Overlay Gambar</label>
+                    <input
+                        type="text"
+                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="Contoh: Visi Kami"
+                        value={localConfig.about.imageOverlayTitle || ''}
+                        onChange={(e) => handleLocalUpdate({ about: { ...localConfig.about, imageOverlayTitle: e.target.value } })}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Subjudul Overlay Gambar</label>
+                    <input
+                        type="text"
+                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="Contoh: Mewujudkan masyarakat yang adil dan makmur."
+                        value={localConfig.about.imageOverlaySubtitle || ''}
+                        onChange={(e) => handleLocalUpdate({ about: { ...localConfig.about, imageOverlaySubtitle: e.target.value } })}
+                    />
+                </div>
             </div>
         </div>
     </div>

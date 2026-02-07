@@ -407,53 +407,60 @@ const PublicPage: React.FC = () => {
       {view === 'home' && (
         <>
           {/* Hero Section */}
-          <section id="home" className="relative pt-20 pb-32 overflow-hidden transition-colors" style={{ backgroundColor: config.hero.backgroundColor || '#ffffff', color: config.hero.textColor || '#111827' }}>
-            <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8 animate-fadeIn relative z-10">
-                <h2 className="text-5xl md:text-6xl font-extrabold leading-tight">{config.hero.title}</h2>
-                <p className="text-xl opacity-90 leading-relaxed">{config.hero.subtitle}</p>
-                <div className="flex gap-4">
-                  <a href={config.hero.ctaButtonLink || '#contact'} className={`px-8 py-4 btn-custom font-semibold shadow-xl transition flex items-center gap-2 ${roundedClass}`}>{config.hero.ctaText} <ArrowRight size={20} /></a>
-                  <button className={`px-8 py-4 bg-transparent border-2 border-current font-semibold hover:bg-black/5 transition ${roundedClass}`}>Pelajari Lebih Lanjut</button>
-                </div>
-              </div>
-              <div className="relative">
-                <div className={`absolute inset-0 bg-primary/10 -rotate-6 scale-95 ${roundedClass}`}></div>
-                <div className={`relative z-10 w-full aspect-[4/3] overflow-hidden shadow-2xl ${roundedClass}`}>
-                  {(() => {
-                    const images = config.hero.images && config.hero.images.length > 0 ? config.hero.images : (config.hero.imageUrl ? [config.hero.imageUrl] : []);
-                    if (images.length === 0) return <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">No Image</div>;
-                    return (
-                      <>
-                        {images.map((img, idx) => (
-                          <img key={idx} src={img} alt={`Hero ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} />
-                        ))}
-                        {images.length > 1 && (
-                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                            {images.map((_, idx) => (
-                              <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-2 h-2 rounded-full transition-all ${idx === currentSlide ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'}`} />
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* About Section */}
-          <section id="about" className="py-20 transition-colors" style={{ backgroundColor: config.about.backgroundColor || '#f9fafb', color: config.about.textColor || '#111827' }}>
-            <div className="container mx-auto px-6">
-              <div className={`bg-white p-8 md:p-12 shadow-sm ${roundedClass}`} style={{ color: '#111827' }}>
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                  {config.about.imageUrl && <img src={config.about.imageUrl} alt="About" className={`w-full h-96 object-cover ${roundedClass}`} />}
-                  <div className="space-y-6">
-                    <span className="text-primary font-bold tracking-wider text-sm uppercase">Tentang Kami</span>
-                    <h3 className="text-3xl font-bold">{config.about.title}</h3>
-                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{config.about.content}</p>
+          <header className="relative h-[500px] md:h-[600px] flex items-center justify-center text-white overflow-hidden">
+            {config.hero.images && config.hero.images.length > 0 ? (
+              <>
+                {config.hero.images.map((img, idx) => (
+                  <div key={idx} className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}>
+                    <div className="absolute inset-0 bg-black/40 z-10" />
+                    <img src={img} alt={`Hero ${idx + 1}`} className="w-full h-full object-cover" />
                   </div>
+                ))}
+                {/* Carousel Dots */}
+                <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center gap-2">
+                  {config.hero.images.map((_, idx) => (
+                    <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-2 h-2 rounded-full transition-all ${idx === currentSlide ? 'bg-white w-6' : 'bg-white/50'}`} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-black/50 z-10" />
+                <img src={config.hero.imageUrl || "https://images.unsplash.com/photo-1532375810709-75b1da00537c?auto=format&fit=crop&q=80"} alt="Hero" className="w-full h-full object-cover" />
+              </div>
+            )}
+
+            <div className="container mx-auto px-6 relative z-20 text-center animate-fadeInUp">
+              <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight drop-shadow-lg">{config.hero.title}</h2>
+              <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto drop-shadow-md">{config.hero.subtitle}</p>
+              <a href={config.hero.buttonUrl || "#about"} className={`px-8 py-4 bg-primary hover:bg-primary-dark text-white font-bold text-lg transition shadow-lg hover:shadow-xl hover:-translate-y-1 inline-block ${roundedClass}`} style={{ backgroundColor: config.hero.buttonColor || undefined, color: config.hero.buttonTextColor || undefined }}>
+                {config.hero.buttonText || "Pelajari Lebih Lanjut"}
+              </a>
+            </div>
+          </header>
+
+          {/* About Section - Newspaper Layout */}
+          <section id="about" className="py-20 transition-colors duration-300" style={{ backgroundColor: config.about.backgroundColor || '#ffffff', color: config.about.textColor || '#111827' }}>
+            <div className="container mx-auto px-6">
+              <div className="grid md:grid-cols-3 gap-12 items-start">
+                <div className="md:col-span-1 sticky top-24">
+                  <div className={`relative overflow-hidden shadow-xl ${roundedClass}`}>
+                    <img src={config.about.imageUrl || "https://images.unsplash.com/photo-1555848962-6e79363ec58f?auto=format&fit=crop&q=80"} alt="About" className="w-full h-auto object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                      <div className="text-white">
+                        <p className="font-bold text-lg">{config.about.imageOverlayTitle || 'Visi Kami'}</p>
+                        <p className="text-sm opacity-90">{config.about.imageOverlaySubtitle || 'Mewujudkan masyarakat yang adil dan makmur.'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="h-1 w-12 bg-primary"></div>
+                    <h3 className="text-primary font-bold tracking-widest uppercase text-sm">Tentang Kami</h3>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-8 leading-tight" style={{ color: config.about.textColor || 'inherit' }}>{config.about.title}</h2>
+                  <div className="prose prose-lg md:columns-2 gap-8 text-justify" style={{ color: config.about.textColor || 'inherit' }} dangerouslySetInnerHTML={{ __html: config.about.content || '<p>Deskripsi belum diatur.</p>' }} />
                 </div>
               </div>
             </div>
@@ -464,92 +471,59 @@ const PublicPage: React.FC = () => {
             <div className="container mx-auto px-6">
               <div className="flex justify-between items-end mb-12">
                 <div>
-                  <h3 className="text-3xl font-bold mb-2">{config.sectionTitles?.news || 'Berita & Kegiatan'}</h3>
-                  <p className="opacity-80">Update terbaru dari pergerakan kami.</p>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="h-1 w-12 bg-primary"></div>
+                    <h3 className="text-primary font-bold tracking-widest uppercase text-sm">Berita & Kegiatan</h3>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{config.sectionDescriptions?.news || "Informasi Terbaru"}</h2>
                 </div>
-                <button onClick={navigateToNewsList} className="hidden md:flex items-center gap-1 text-primary font-semibold hover:gap-2 transition-all">Lihat Semua <ChevronRight size={18} /></button>
+                <button onClick={navigateToNewsList} className="hidden md:flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">Lihat Semua <ArrowRight size={20} /></button>
               </div>
 
-              {/* Featured News */}
-              {featuredNews.length > 0 && (
-                <div className="mb-12">
-                  <h4 className="text-xl font-bold mb-6 flex items-center gap-2 text-yellow-600"><Star fill="currentColor" size={20} /> Berita Pilihan</h4>
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {featuredNews.map(item => (
-                      <article key={item.id} className={`bg-white text-gray-800 shadow-lg hover:shadow-xl transition duration-300 ${roundedClass} overflow-hidden flex flex-col cursor-pointer border-2 border-yellow-400/30`} onClick={() => navigateToNews(item)}>
-                        <div className="h-64 overflow-hidden relative">
-                          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover hover:scale-105 transition duration-700" />
-                          <div className="absolute top-4 left-4 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"><Star size={10} fill="currentColor" /> FEATURED</div>
-                        </div>
-                        <div className="p-6 flex-1 flex flex-col">
-                          <div className="text-xs text-gray-500 mb-2 font-medium flex items-center gap-2"><Calendar size={12} /> {item.date}</div>
-                          <h4 className="text-2xl font-bold mb-3 hover:text-primary transition">{item.title}</h4>
-                          <p className="text-gray-600 line-clamp-2 mb-4">{stripHtml(item.content)}</p>
-                          <span className="text-primary font-semibold text-sm mt-auto inline-flex items-center gap-1">Baca Selengkapnya <ArrowRight size={14} /></span>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Regular News Grid (Limit 4) */}
-              <div className="grid md:grid-cols-4 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {homeNews.map((item) => (
-                  <article key={item.id} className={`bg-white text-gray-800 hover:-translate-y-1 transition duration-300 shadow-sm hover:shadow-xl ${roundedClass} overflow-hidden flex flex-col cursor-pointer`} onClick={() => navigateToNews(item)}>
-                    <div className="h-48 overflow-hidden">
-                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                  <article key={item.id} className={`bg-white group hover:-translate-y-2 transition duration-300 shadow-sm hover:shadow-xl ${roundedClass} overflow-hidden cursor-pointer h-full flex flex-col`} onClick={() => navigateToNews(item)}>
+                    <div className="h-48 overflow-hidden relative">
+                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
+                        <Calendar size={10} /> {item.date}
+                      </div>
                     </div>
-                    <div className="p-5 flex-1 flex flex-col">
-                      <div className="text-xs text-gray-500 mb-2 font-medium flex items-center gap-2"><Calendar size={12} /> {item.date}</div>
-                      <h4 className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary transition">{item.title}</h4>
-                      <p className="text-gray-600 text-xs line-clamp-3 mb-3 flex-1">{stripHtml(item.content)}</p>
-                      <span className="text-primary font-semibold text-xs mt-auto inline-flex items-center gap-1">Baca <ArrowRight size={12} /></span>
+                    <div className="p-6 flex-1 flex flex-col">
+                      <h4 className="text-lg font-bold mb-3 line-clamp-2 group-hover:text-primary transition">{item.title}</h4>
+                      <p className="text-gray-600 text-sm line-clamp-3 mb-4 flex-1">{stripHtml(item.content)}</p>
+                      <span className="text-primary font-semibold text-sm mt-auto inline-flex items-center gap-1 group-hover:gap-2 transition-all">Baca Selengkapnya <ChevronRight size={14} /></span>
                     </div>
                   </article>
                 ))}
               </div>
-
-              <div className="mt-8 text-center md:hidden">
-                <button onClick={navigateToNewsList} className="btn-custom px-6 py-3 rounded-full font-semibold shadow-md w-full">Lihat Semua Berita</button>
-              </div>
+              <button onClick={navigateToNewsList} className="md:hidden w-full mt-8 py-3 bg-white border border-gray-200 text-primary font-bold rounded-lg shadow-sm">Lihat Semua Berita</button>
             </div>
           </section>
 
           {/* Media Quotes Section */}
           {config.mediaQuotes && config.mediaQuotes.length > 0 && (
-            <section className="py-16 bg-white">
-              <div className="container mx-auto px-6">
-                <h3 className="text-2xl font-bold mb-8 text-center">Kutipan Media</h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {config.mediaQuotes.map(quote => (
-                    <div key={quote.id} className="bg-gray-50 p-6 rounded-xl border border-gray-100 relative flex flex-col">
-                      <Quote className="text-primary/20 absolute top-4 right-4" size={40} />
-
-                      {/* Image if provided */}
-                      {quote.imageUrl && (
-                        <div className="mb-4">
-                          <img
-                            src={quote.imageUrl}
-                            alt={quote.source}
-                            className="w-full h-40 object-cover rounded-lg"
-                          />
-                        </div>
-                      )}
-
-                      <p className="text-gray-700 italic mb-4 relative z-10">"{quote.content}"</p>
-                      <div className="flex items-center gap-3 mt-auto">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xs">
-                          {quote.source.substring(0, 2).toUpperCase()}
+            <section className="py-20 bg-primary text-white relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10 pattern-dots"></div>
+              <div className="container mx-auto px-6 relative z-10">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4">Suara Media</h2>
+                  <div className="h-1 w-20 bg-white/30 mx-auto"></div>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8">
+                  {config.mediaQuotes.map((quote) => (
+                    <div key={quote.id} className="bg-white/10 backdrop-blur-sm p-8 rounded-xl border border-white/10 hover:bg-white/20 transition">
+                      <Quote size={40} className="text-white/30 mb-6" />
+                      <p className="text-lg italic mb-6 leading-relaxed">"{quote.content}"</p>
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-primary font-bold text-xl">
+                          {quote.source.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-bold text-sm text-gray-900">{quote.source}</p>
-                          {quote.author && <p className="text-xs text-gray-500">{quote.author}</p>}
+                          <p className="font-bold">{quote.source}</p>
+                          <p className="text-sm opacity-70">{quote.date}</p>
                         </div>
                       </div>
-                      {quote.url && (
-                        <a href={quote.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline mt-3 block">Baca Sumber &rarr;</a>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -558,21 +532,24 @@ const PublicPage: React.FC = () => {
           )}
 
           {/* Team Section */}
-          <section id="team" className="py-16 bg-gray-50" style={{ backgroundColor: config.teamBackgroundColor || '#f9fafb' }}>
+          <section id="team" className="py-20 bg-white">
             <div className="container mx-auto px-6">
-              <div className="text-center mb-12">
-                <h3 className="text-3xl font-bold mb-4" style={{ color: config.teamTextColor || 'inherit' }}>{config.sectionTitles?.structure || 'Struktur Organisasi'}</h3>
-                <p className="opacity-80" style={{ color: config.teamTextColor || 'inherit' }}>{config.sectionDescriptions?.structure || 'Para pemimpin yang berdedikasi untuk membawa perubahan positif.'}</p>
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{config.sectionDescriptions?.structure || "Struktur Organisasi"}</h2>
+                <p className="opacity-80" style={{ color: config.teamTextColor || 'inherit' }}>Para pemimpin yang berdedikasi untuk membawa perubahan positif.</p>
+                <div className="h-1 w-20 bg-primary mx-auto mt-6"></div>
               </div>
-              <div className="grid md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
                 {config.team.map((member) => (
-                  <div key={member.id} className="group text-center cursor-pointer" onClick={() => navigateToTeam(member)}>
-                    <div className={`relative overflow-hidden mb-4 bg-gray-100 aspect-square ${roundedClass}`}>
-                      {member.photoUrl && <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white font-medium">Lihat Profil</div>
+                  <div key={member.id} className="group cursor-pointer" onClick={() => navigateToTeam(member)}>
+                    <div className={`relative overflow-hidden mb-4 shadow-lg ${roundedClass} aspect-[3/4]`}>
+                      <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-6">
+                        <span className="text-white font-semibold text-sm flex items-center gap-2">Lihat Profil <ArrowRight size={14} /></span>
+                      </div>
                     </div>
-                    <h4 className="text-lg font-bold" style={{ color: config.teamTextColor || 'inherit' }}>{member.name}</h4>
-                    <p className="font-medium text-sm opacity-80" style={{ color: config.teamTextColor || 'inherit' }}>{member.role}</p>
+                    <h4 className="text-xl font-bold text-gray-900 group-hover:text-primary transition">{member.name}</h4>
+                    <p className="text-primary font-medium">{member.role}</p>
                   </div>
                 ))}
               </div>
