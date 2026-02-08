@@ -176,6 +176,15 @@ const HeaderFooterTab: React.FC<HeaderFooterTabProps> = ({ localConfig, handleLo
                         />
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Judul Kolom Bergabung</label>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                            value={localConfig.footer.joinTitle || "Bergabung"}
+                            onChange={(e) => handleLocalUpdate({ footer: { ...localConfig.footer, joinTitle: e.target.value } })}
+                        />
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Teks Copyright</label>
                         <input
                             type="text"

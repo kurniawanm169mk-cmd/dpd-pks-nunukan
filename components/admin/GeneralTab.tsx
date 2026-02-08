@@ -23,6 +23,17 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ localConfig, handleLocalUpdate 
                     />
                 </div>
                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Domain Website (URL)</label>
+                    <input
+                        type="text"
+                        placeholder="https://..."
+                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+                        value={localConfig.identity.siteUrl || ''}
+                        onChange={(e) => handleLocalUpdate({ identity: { ...localConfig.identity, siteUrl: e.target.value } })}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Masukkan URL lengkap (contoh: https://partaikita.com)</p>
+                </div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tagline</label>
                     <input
                         type="text"
@@ -39,6 +50,17 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ localConfig, handleLocalUpdate 
                         label="Upload Logo"
                         bucketName="images"
                     />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Google Site Verification ID</label>
+                    <input
+                        type="text"
+                        placeholder="Contoh: vQy... (dari tag HTML Google)"
+                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        value={localConfig.identity.googleVerificationId || ''}
+                        onChange={(e) => handleLocalUpdate({ identity: { ...localConfig.identity, googleVerificationId: e.target.value } })}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Masukkan kode dari meta tag Google Search Console.</p>
                 </div>
             </div>
         </div>

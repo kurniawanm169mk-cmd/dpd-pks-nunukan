@@ -46,6 +46,8 @@ export interface SiteConfig {
     name: string;
     logoUrl: string; // URL or Base64
     tagline: string;
+    siteUrl?: string;
+    googleVerificationId?: string;
   };
   header: {
     backgroundColor: string; // Hex or rgba
@@ -58,6 +60,7 @@ export interface SiteConfig {
     textColor: string;
     description: string;
     copyrightText: string;
+    joinTitle?: string;
   };
   registration: {
     enabled: boolean;

@@ -5,6 +5,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     name: "Partai Harapan Masa Depan",
     logoUrl: "https://via.placeholder.com/150/2563eb/ffffff?text=PHMD",
     tagline: "Membangun Negeri, Menata Hati",
+    siteUrl: "https://dpd-pks-nunukan.vercel.app",
   },
   header: {
     backgroundColor: "#ffffff",
@@ -17,6 +18,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     textColor: "#ffffff",
     description: "Jadilah bagian dari perubahan. Daftarkan diri Anda sebagai relawan atau anggota.",
     copyrightText: "All rights reserved.",
+    joinTitle: "Bergabung",
   },
   registration: {
     enabled: true,

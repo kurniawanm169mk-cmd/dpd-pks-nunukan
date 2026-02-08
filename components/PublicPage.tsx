@@ -47,7 +47,17 @@ const PublicPage: React.FC = () => {
       }
       link.href = config.identity.logoUrl;
     }
-  }, [config.identity.name, config.identity.logoUrl]);
+
+    if (config.identity.googleVerificationId) {
+      let meta: HTMLMetaElement | null = document.querySelector("meta[name='google-site-verification']");
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'google-site-verification';
+        document.head.appendChild(meta);
+      }
+      meta.content = config.identity.googleVerificationId;
+    }
+  }, [config.identity.name, config.identity.logoUrl, config.identity.googleVerificationId]);
 
   // Handle URL Params for Deep Linking
   useEffect(() => {
@@ -716,7 +726,7 @@ const PublicPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <h5 className="text-lg font-bold mb-6">Bergabung</h5>
+              <h5 className="text-lg font-bold mb-6">{config.footer?.joinTitle || "Bergabung"}</h5>
               <p className="opacity-70 mb-4">{config.footer?.description || "Jadilah bagian dari perubahan."}</p>
               <a href={config.registration?.url || "#contact"} className={`block w-full text-center py-3 font-bold transition ${roundedClass}`} style={{ backgroundColor: config.registration?.buttonColor || '#2563eb', color: config.registration?.buttonTextColor || '#ffffff' }}>{config.registration?.buttonText || "Daftar Sekarang"}</a>
             </div>
