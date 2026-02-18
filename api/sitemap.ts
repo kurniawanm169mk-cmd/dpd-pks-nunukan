@@ -8,8 +8,8 @@ const BASE_URL = "https://nunukan.pks.id";
 
 export default async function handler(request: Request) {
     try {
-        // Fetch all news slugs - only use columns that exist in live DB
-        const queryUrl = `${SUPABASE_URL}/rest/v1/news_items?select=slug,created_at&order=created_at.desc`;
+        // Fetch all news - include image_url for image sitemap
+        const queryUrl = `${SUPABASE_URL}/rest/v1/news_items?select=slug,created_at,title,image_url&order=created_at.desc`;
 
         const apiRes = await fetch(queryUrl, {
             headers: {
@@ -18,7 +18,7 @@ export default async function handler(request: Request) {
             }
         });
 
-        let newsItems: Array<{ slug: string; created_at: string }> = [];
+        let newsItems: Array<{ slug: string; created_at: string; title: string; image_url: string }> = [];
         if (apiRes.ok) {
             newsItems = await apiRes.json();
         }
@@ -31,8 +31,10 @@ export default async function handler(request: Request) {
             { url: '/#kontak', priority: '0.6', changefreq: 'monthly' },
         ];
 
+        // Use image sitemap namespace so Google can index images
         let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`;
 
         // Static pages
         staticPages.forEach(page => {
@@ -44,18 +46,25 @@ export default async function handler(request: Request) {
   </url>`;
         });
 
-        // News pages - each article gets its own URL
+        // News pages with image sitemap entries
         newsItems.forEach(item => {
             if (!item.slug) return;
             const lastMod = item.created_at
                 ? new Date(item.created_at).toISOString().split('T')[0]
                 : new Date().toISOString().split('T')[0];
+            const imageUrl = item.image_url ? encodeURI(item.image_url) : '';
+            const imageTitle = (item.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
             sitemap += `
   <url>
     <loc>${BASE_URL}/news/${item.slug}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.8</priority>${imageUrl ? `
+    <image:image>
+      <image:loc>${imageUrl}</image:loc>
+      <image:title>${imageTitle}</image:title>
+    </image:image>` : ''}
   </url>`;
         });
 
