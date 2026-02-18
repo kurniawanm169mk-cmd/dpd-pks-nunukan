@@ -50,7 +50,12 @@ export default async function middleware(request: Request) {
         }
     }
 
-    return fetch(request);
+    // Always add a header to confirm middleware is running
+    const response = await fetch(request);
+    const newRes = new Response(response.body, response);
+    newRes.headers.set('X-Middleware-Run', 'true');
+
+    return newRes;
 }
 
 export const config = {
