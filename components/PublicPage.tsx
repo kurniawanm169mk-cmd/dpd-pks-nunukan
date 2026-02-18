@@ -675,54 +675,64 @@ const PublicPage: React.FC = () => {
 
       {/* News Detail View */}
       {view === 'news-detail' && selectedNews && (
-        <div className="py-12 bg-gray-50 flex-1">
-          <div className="container mx-auto px-6">
+        <div className="py-10 bg-gray-50 flex-1">
+          <div className="max-w-5xl mx-auto px-4 md:px-8">
             <button onClick={navigateToHome} className="mb-6 flex items-center gap-2 text-gray-600 hover:text-primary font-medium transition"><ArrowLeft size={20} /> Kembali ke Beranda</button>
-            <article className={`bg-white p-8 md:p-12 shadow-md ${roundedClass}`}>
-              <div className="mb-8">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-sm font-semibold text-primary block flex items-center gap-4">
-                    <span>{selectedNews.date}</span>
-                    <span className="flex items-center gap-1 text-gray-500 font-normal"><Eye size={14} /> {selectedNews.views || 0} Dilihat</span>
+            <article className={`bg-white shadow-md overflow-hidden ${roundedClass}`}>
+              {/* Image Carousel - Full Width at Top */}
+              {(() => {
+                const allImages = [selectedNews.imageUrl, ...(selectedNews.images || [])].filter(Boolean);
+                return (
+                  <div className="relative bg-gray-900">
+                    <div className="relative overflow-hidden" style={{ minHeight: '400px', maxHeight: '600px' }}>
+                      <img
+                        src={allImages[newsImageSlide]}
+                        alt="News Detail"
+                        className="w-full object-cover"
+                        style={{ minHeight: '400px', maxHeight: '600px' }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+                    </div>
+
+                    {allImages.length > 1 && (
+                      <>
+                        <button onClick={() => setNewsImageSlide(prev => (prev === 0 ? allImages.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-3 rounded-full hover:bg-white shadow-lg"><ChevronLeft size={24} /></button>
+                        <button onClick={() => setNewsImageSlide(prev => (prev + 1) % allImages.length)} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-3 rounded-full hover:bg-white shadow-lg"><ChevronRight size={24} /></button>
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                          {allImages.map((_, idx) => (
+                            <button key={idx} onClick={() => setNewsImageSlide(idx)} className={`w-2.5 h-2.5 rounded-full transition-all ${idx === newsImageSlide ? 'bg-white w-8' : 'bg-white/50'}`} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Article Content */}
+              <div className="p-6 md:p-10 lg:p-14">
+                <div className="flex justify-between items-center mb-5">
+                  <span className="text-sm font-semibold text-primary flex items-center gap-4">
+                    <span className="flex items-center gap-1.5"><Calendar size={14} /> {selectedNews.date}</span>
+                    <span className="flex items-center gap-1.5 text-gray-500 font-normal"><Eye size={14} /> {selectedNews.views || 0} Dilihat</span>
                   </span>
-                  <button onClick={copyNewsLink} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition border px-3 py-1 rounded-full">
+                  <button onClick={copyNewsLink} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition border px-3 py-1.5 rounded-full">
                     <Share2 size={14} /> Salin Link
                   </button>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">{selectedNews.title}</h1>
 
-                {/* Image Carousel */}
-                <div className="mb-8 relative group">
-                  {(() => {
-                    const allImages = [selectedNews.imageUrl, ...(selectedNews.images || [])].filter(Boolean);
-                    return (
-                      <div className="relative overflow-hidden rounded-xl bg-gray-100">
-                        <div className="aspect-video relative">
-                          <img src={allImages[newsImageSlide]} alt="News Detail" className="w-full h-full object-contain bg-black/5" />
-                        </div>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">{selectedNews.title}</h1>
 
-                        {allImages.length > 1 && (
-                          <>
-                            <button onClick={() => setNewsImageSlide(prev => (prev === 0 ? allImages.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white shadow-lg"><ChevronLeft size={24} /></button>
-                            <button onClick={() => setNewsImageSlide(prev => (prev + 1) % allImages.length)} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white shadow-lg"><ChevronRight size={24} /></button>
-                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                              {allImages.map((_, idx) => (
-                                <button key={idx} onClick={() => setNewsImageSlide(idx)} className={`w-2 h-2 rounded-full transition-all ${idx === newsImageSlide ? 'bg-primary w-6' : 'bg-gray-300'}`} />
-                              ))}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedNews.content }} />
+                <div
+                  className="prose prose-lg prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-img:rounded-xl prose-img:shadow-md max-w-none text-gray-700 leading-relaxed text-lg"
+                  style={{ fontSize: '1.1rem', lineHeight: '1.9' }}
+                  dangerouslySetInnerHTML={{ __html: selectedNews.content }}
+                />
 
                 {selectedNews.tags && selectedNews.tags.length > 0 && (
-                  <div className="mt-8 pt-6 border-t flex gap-2 flex-wrap">
+                  <div className="mt-10 pt-6 border-t flex gap-2 flex-wrap">
                     {selectedNews.tags.map((tag, idx) => (
-                      <span key={idx} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">#{tag}</span>
+                      <span key={idx} className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium">#{tag}</span>
                     ))}
                   </div>
                 )}
