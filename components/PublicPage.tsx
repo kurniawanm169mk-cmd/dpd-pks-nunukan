@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from '../contexts/ConfigContext';
-import { Menu, X, Facebook, Twitter, Instagram, Mail, MapPin, Phone, ArrowRight, ChevronRight, Lock, LogIn, Youtube, Linkedin, Globe, Link as LinkIcon, Music, ArrowLeft, Calendar, Search, Star, Share2, Quote, ChevronLeft } from 'lucide-react';
+import { Menu, X, Facebook, Twitter, Instagram, Mail, MapPin, Phone, ArrowRight, ChevronRight, Lock, LogIn, Youtube, Linkedin, Globe, Link as LinkIcon, Music, ArrowLeft, Calendar, Search, Star, Share2, Quote, ChevronLeft, Eye } from 'lucide-react';
 import { NewsItem, TeamMember } from '../types';
+import { supabase } from '../services/supabaseClient';
 
 type ViewState = 'home' | 'news-detail' | 'team-detail' | 'news-list';
 
@@ -220,10 +221,24 @@ const PublicPage: React.FC = () => {
     }, 0);
   };
 
-  const navigateToNews = (item: NewsItem) => {
+  const navigateToNews = async (item: NewsItem) => {
     setSelectedNews(item);
     setView('news-detail');
     setNewsImageSlide(0);
+
+    // Increment view count
+    try {
+      const { error } = await supabase.rpc('increment_news_view', { news_id: item.id });
+      if (!error) {
+        // Optimistically update local state if needed, or rely on re-fetch next time
+        // For now, we just rely on the fact that next time ConfigContext refreshes, it gets new data.
+        // But to show immediate update (+1), we can do:
+        setSelectedNews(prev => prev ? ({ ...prev, views: (prev.views || 0) + 1 }) : null);
+      }
+    } catch (e) {
+      console.error("Failed to increment views", e);
+    }
+
     // Update URL with slug
     const slug = item.slug || item.id;
     const newUrl = `${window.location.pathname}?news=${slug}`;
@@ -631,7 +646,10 @@ const PublicPage: React.FC = () => {
             <article className={`bg-white p-8 md:p-12 shadow-md ${roundedClass}`}>
               <div className="mb-8">
                 <div className="flex justify-between items-start mb-4">
-                  <span className="text-sm font-semibold text-primary block">{selectedNews.date}</span>
+                  <span className="text-sm font-semibold text-primary block flex items-center gap-4">
+                    <span>{selectedNews.date}</span>
+                    <span className="flex items-center gap-1 text-gray-500 font-normal"><Eye size={14} /> {selectedNews.views || 0} Dilihat</span>
+                  </span>
                   <button onClick={copyNewsLink} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition border px-3 py-1 rounded-full">
                     <Share2 size={14} /> Salin Link
                   </button>

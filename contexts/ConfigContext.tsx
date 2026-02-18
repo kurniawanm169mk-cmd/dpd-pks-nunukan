@@ -103,7 +103,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               isFeatured: n.is_featured,
               tags: n.tags || [],
               slug: n.slug,
-              orderIndex: n.order_index
+              orderIndex: n.order_index,
+              views: n.views || 0
             }));
           }
 

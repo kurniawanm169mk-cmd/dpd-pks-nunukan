@@ -21,6 +21,7 @@ export interface NewsItem {
   metaDescription?: string;
   metaKeywords?: string;
   orderIndex?: number;
+  views?: number;
 }
 
 export interface MediaQuote {
