@@ -167,33 +167,25 @@ const PublicPage: React.FC = () => {
     }
 
     // Signal Prerender.io that the page is ready (after meta tags are set)
-    // CRITICAL: Do NOT set ready if we are on a news URL but haven't loaded the news yet.
     const isNewsUrl = window.location.pathname.startsWith('/news/') || new URLSearchParams(window.location.search).has('news');
 
-    // Check if we are done loading:
-    // 1. If Home view and NOT a news URL -> Ready
-    // 2. If News Detail view and News is loaded -> Ready
-    // 3. If News URL but config is loaded and News NOT found -> Ready (fallback to Home/404 state to avoid timeout)
-
-    const newsSlug = new URLSearchParams(window.location.search).get('news') || (window.location.pathname.startsWith('/news/') ? window.location.pathname.split('/')[2] : null);
-    const isNewsNotFound = isNewsUrl && config.news.length > 0 && newsSlug && !config.news.find(n => n.slug === newsSlug || n.id === newsSlug);
-
-    if ((view === 'news-detail' && selectedNews) || (view === 'home' && !isNewsUrl) || isNewsNotFound) {
+    // Only set ready if we are NOT on a news URL, OR if we ARE on a news URL and have selectedNews
+    if (!isNewsUrl || (isNewsUrl && selectedNews)) {
+      // Small buffer to ensure DOM is painted
       setTimeout(() => {
         (window as any).prerenderReady = true;
-      }, 500); // Small buffer to ensure DOM is painted
+      }, 500);
     }
   }, [view, selectedNews, config.identity.name, config.identity.tagline, config.identity.logoUrl, config.news]);
 
   // Fallback timeout to ensure prerenderReady is always set eventually
-  // This prevents Prerender.io from timing out if something goes wrong (e.g. news not found)
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!(window as any).prerenderReady) {
         console.warn('Prerender timeout reached, forcing ready state.');
         (window as any).prerenderReady = true;
       }
-    }, 10000); // 10 seconds max wait
+    }, 5000); // reduced to 5s to be faster than Prerender's own timeout
 
     return () => clearTimeout(timeout);
   }, []);
