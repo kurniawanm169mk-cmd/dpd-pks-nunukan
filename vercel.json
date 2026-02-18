@@ -14,7 +14,7 @@
                 {
                     "type": "header",
                     "key": "User-Agent",
-                    "value": ".*(facebookexternalhit|whatsapp|twitterbot|linkedinbot|slackbot|discordbot|Googlebot|bingbot|Applebot|Twitterbot|redditbot|Slackbot).*"
+                    "value": ".*(bot|crawler|spider|facebookexternalhit|whatsapp|twitterbot|linkedinbot|slackbot|discordbot|Googlebot|Google-InspectionTool|AdsBot-Google|bingbot|Applebot|redditbot|Slackbot|DuckDuckBot|Baiduspider|YandexBot|SemrushBot|AhrefsBot).*"
                 }
             ],
             "destination": "/api/bot-news?news=:slug"
