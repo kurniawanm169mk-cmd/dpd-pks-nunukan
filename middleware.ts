@@ -27,21 +27,29 @@ export default async function middleware(request: Request) {
                     return new Response(html, {
                         headers: {
                             'Content-Type': 'text/html; charset=utf-8',
-                            'Cache-Control': 'public, max-age=600' // Cache for 10 mins
+                            'Cache-Control': 'public, max-age=600', // Cache for 10 mins
+                            'X-Prerender-Status': '200'
                         }
                     });
                 }
+            } else {
+                // Return 200 (fallback) but with debug headers
+                const res = await fetch(request);
+                const newRes = new Response(res.body, res);
+                newRes.headers.set('X-Prerender-Status', response.status.toString());
+                newRes.headers.set('X-Prerender-Message', response.statusText);
+                return newRes;
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Prerender error:', e);
             // Fallback to normal rendering if Prerender fails
+            const res = await fetch(request);
+            const newRes = new Response(res.body, res);
+            newRes.headers.set('X-Prerender-Error', e.toString());
+            return newRes;
         }
     }
 
-    // Allow request to continue (return undefined or fetch(request) depending on runtime, 
-    // but for Vercel Middleware simply returning nothing or fetching original passes it through)
-    // However, Vercel Edge Middleware expects a Response object or check Vercel docs.
-    // Standard pattern: return fetch(request)
     return fetch(request);
 }
 
