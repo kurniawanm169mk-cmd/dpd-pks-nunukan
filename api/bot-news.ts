@@ -82,7 +82,7 @@ export default async function handler(request: Request) {
                 return new Response('News not found', { status: 404 });
             }
         } else {
-            return new Response('Database error', { status: 500 });
+            return new Response(`Database error: ${apiRes.status} ${apiRes.statusText}`, { status: 500 });
         }
     } catch (error: any) {
         return new Response(`Error: ${error.message}`, { status: 500 });
