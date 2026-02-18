@@ -1,35 +1,50 @@
 export default async function middleware(request: Request) {
     const url = new URL(request.url);
-
-    // Serve robots.txt
-    if (url.pathname === '/robots.txt') {
-        return fetch(new URL('/api/robots', request.url));
-    }
-
-    // Serve sitemap.xml
-    if (url.pathname === '/sitemap.xml') {
-        return fetch(new URL('/api/sitemap', request.url));
-    }
-
-    // Skip static files and API routes (Manual Matcher)
-    if (url.pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js|json)$/) || url.pathname.startsWith('/api') || url.pathname.startsWith('/assets')) {
-        return fetch(request);
-    }
-
     const userAgent = request.headers.get('user-agent') || '';
     const isBot = /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|whatsapp|twitterbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest\/0\.|developers.google.com\/\+\/web\/snippet|slackbot|vkShare|W3C_Validator|redditbot|Applebot|flipboard|tumblr|bitlybot|SkypeUriPreview|nuzzel|Discordbot|Google Page Speed|Qwantify|pinterest|wordpress|x-bufferbot/i.test(userAgent);
 
-    // Check if it's a news URL
-    // Format: /news/:slug or /?news=:slug
-    const isNewsUrl = url.pathname.startsWith('/news/');
-    const newsSlug = isNewsUrl ? url.pathname.split('/')[2] : url.searchParams.get('news');
+    // Prerender.io Token (from environment or hardcoded as fallback for this user)
+    // Note: Env vars in Vercel Edge Middleware are accessed via process.env
+    const PRERENDER_TOKEN = process.env.PRERENDER_TOKEN || 'XCQfQeip7VmDmRP7FfHl';
 
-    // Intercept bot requests for news pages to serve OG tags
-    if (isBot && newsSlug) {
-        // Rewrite to API to generate HTML with meta tags
-        const shareUrl = new URL(`/api/share/${newsSlug}`, request.url);
-        return fetch(shareUrl);
+    if (isBot) {
+        // Construct the URL to forward to Prerender.io
+        // request.url is the full URL including query params
+        const prerenderUrl = `https://service.prerender.io/${request.url}`;
+
+        try {
+            const response = await fetch(prerenderUrl, {
+                headers: {
+                    'X-Prerender-Token': PRERENDER_TOKEN,
+                    'User-Agent': userAgent // Forward the original UA
+                }
+            });
+
+            if (response.ok) {
+                const html = await response.text();
+                return new Response(html, {
+                    headers: {
+                        'Content-Type': 'text/html; charset=utf-8',
+                        'Cache-Control': 'public, max-age=600' // Cache for 10 mins
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Prerender error:', e);
+            // Fallback to normal rendering if Prerender fails
+        }
     }
 
+    // Allow request to continue (return undefined or fetch(request) depending on runtime, 
+    // but for Vercel Middleware simply returning nothing or fetching original passes it through)
+    // However, Vercel Edge Middleware expects a Response object or check Vercel docs.
+    // Standard pattern: return fetch(request)
     return fetch(request);
 }
+
+export const config = {
+    matcher: [
+        // Match all paths except static files and APIs
+        '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|assets).*)',
+    ],
+};
