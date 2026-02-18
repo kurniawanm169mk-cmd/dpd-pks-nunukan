@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+// Standard Web API Response is used, no Next.js dependency needed
+
 
 // Hardcoded fallback credentials to ensure immediate functionality
 // In production, these should be environment variables.
