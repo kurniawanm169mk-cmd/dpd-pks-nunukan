@@ -2,6 +2,17 @@
     "rewrites": [
         {
             "source": "/news/:slug",
+            "has": [
+                {
+                    "type": "header",
+                    "key": "User-Agent",
+                    "value": ".*(facebookexternalhit|whatsapp|twitterbot|linkedinbot|slackbot|discordbot).*"
+                }
+            ],
+            "destination": "/api/bot-news?news=:slug"
+        },
+        {
+            "source": "/news/:slug",
             "destination": "/?news=:slug"
         },
         {
