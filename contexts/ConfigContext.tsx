@@ -32,24 +32,32 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => subscription.unsubscribe();
   }, []);
 
-  // Initial Load from Supabase
+  // Initial Load from Supabase - all queries run in parallel for speed
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const { data, error } = await supabase
-          .from('site_settings')
-          .select('*')
-          .single();
+        // Run all queries in parallel instead of sequentially
+        const [
+          { data, error },
+          { data: teamData },
+          { data: newsData },
+          { data: quotesData },
+          { data: socialData }
+        ] = await Promise.all([
+          supabase.from('site_settings').select('*').single(),
+          supabase.from('team_members').select('*').order('order_index', { ascending: true }),
+          supabase.from('news_items').select('*').order('order_index', { ascending: true }),
+          supabase.from('media_quotes').select('*'),
+          supabase.from('social_links').select('*')
+        ]);
 
         if (error) {
           console.error('Error loading config from Supabase:', error);
-          // Fallback to local storage if Supabase fails (e.g. offline)
           const saved = localStorage.getItem('siteConfig');
           if (saved) {
             setConfigState({ ...DEFAULT_CONFIG, ...JSON.parse(saved) });
           }
         } else if (data) {
-          // Merge Supabase data with default config to ensure type safety
           const mergedConfig: SiteConfig = {
             ...DEFAULT_CONFIG,
             identity: { ...DEFAULT_CONFIG.identity, ...data.identity },
@@ -60,7 +68,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             hero: { ...DEFAULT_CONFIG.hero, ...data.hero },
             about: { ...DEFAULT_CONFIG.about, ...data.about },
             contact: { ...DEFAULT_CONFIG.contact, ...data.contact },
-            // Handle flat fields
             teamBackgroundColor: data.team_background_color || DEFAULT_CONFIG.teamBackgroundColor,
             teamTextColor: data.team_text_color || DEFAULT_CONFIG.teamTextColor,
             newsBackgroundColor: data.news_background_color || DEFAULT_CONFIG.newsBackgroundColor,
@@ -68,12 +75,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             sectionTitles: data.section_titles || DEFAULT_CONFIG.sectionTitles,
             sectionDescriptions: data.section_descriptions || DEFAULT_CONFIG.sectionDescriptions,
           };
-
-          // Fetch Team
-          const { data: teamData } = await supabase
-            .from('team_members')
-            .select('*')
-            .order('order_index', { ascending: true });
 
           if (teamData) {
             mergedConfig.team = teamData.map(t => ({
@@ -85,12 +86,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               orderIndex: t.order_index
             }));
           }
-
-          // Fetch News
-          const { data: newsData } = await supabase
-            .from('news_items')
-            .select('*')
-            .order('order_index', { ascending: true });
 
           if (newsData) {
             mergedConfig.news = newsData.map(n => ({
@@ -108,8 +103,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }));
           }
 
-          // Fetch Media Quotes
-          const { data: quotesData } = await supabase.from('media_quotes').select('*');
           if (quotesData) {
             mergedConfig.mediaQuotes = quotesData.map(q => ({
               id: q.id,
@@ -122,8 +115,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }));
           }
 
-          // Fetch Socials
-          const { data: socialData } = await supabase.from('social_links').select('*');
           if (socialData) {
             mergedConfig.socialMedia = socialData.map(s => ({
               id: s.id,
@@ -455,9 +446,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsAdmin(false);
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
-  }
 
   return (
     <ConfigContext.Provider value={{ config, updateConfig, resetConfig, isAdmin, toggleAdmin, login, logout }}>
