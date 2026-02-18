@@ -1,5 +1,8 @@
-// Standard Web API Response is used, no Next.js dependency needed
+import { NextResponse } from 'next/server';
 
+// Standard Web API Response is used, no Next.js dependency needed but typical Vercel examples use NextResponse. 
+// However, in a pure Vite/Vercel Output setup, standard Response is safer.
+// Let's stick to standard Response to avoid import errors.
 
 // Hardcoded fallback credentials to ensure immediate functionality
 // In production, these should be environment variables.
@@ -14,20 +17,27 @@ export default async function middleware(request: Request) {
     const isBot = /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|whatsapp|twitterbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest\/0\.|developers.google.com\/\+\/web\/snippet|slackbot|vkShare|W3C_Validator|redditbot|Applebot|flipboard|tumblr|bitlybot|SkypeUriPreview|nuzzel|Discordbot|Google Page Speed|Qwantify|pinterest|wordpress|x-bufferbot/i.test(userAgent);
 
     // 2. Check if it's a News Detail URL
-    // Pattern: /news/:slug
+    // Pattern A: /news/:slug
+    // Pattern B: /?news=:slug (Query Param)
     const newsMatch = url.pathname.match(/^\/news\/([^\/]+)$/);
+    const newsQuery = url.searchParams.get('news');
 
-    if (isBot && newsMatch) {
-        const slug = newsMatch[1];
+    const slug = newsMatch ? newsMatch[1] : newsQuery;
 
+    // DEBUG: Inject headers to see why it might be skipping
+    // specific header for bot detection
+    const debugHeaders = {
+        'X-Mw-Bot': isBot.toString(),
+        'X-Mw-Path': url.pathname,
+        'X-Mw-Slug': slug || 'null'
+    };
+
+    if (isBot && slug) {
         try {
             // 3. Fetch News Data from Supabase directly
             // Using direct fetch to avoid heavy client library in middleware
-            // FIX: Query only by slug to avoid UUID vs Text type mismatch in 'or' filter
+            // Query only by slug to avoid UUID vs Text type mismatch in 'or' filter
             let queryUrl = `${SUPABASE_URL}/rest/v1/news_items?slug=eq.${slug}&select=title,content,image_url,meta_description&limit=1`;
-
-            // If slug looks like a UUID, we could optionally query by ID, but for social sharing it's 99% slugs.
-            // keeping it simple to prevent 500 errors.
 
             const apiRes = await fetch(queryUrl, {
                 headers: {
@@ -88,21 +98,49 @@ export default async function middleware(request: Request) {
                         headers: {
                             'Content-Type': 'text/html; charset=utf-8',
                             'Cache-Control': 'public, max-age=60', // Cache short time
-                            'X-Middleware-Injected': 'true' // Debug header
+                            'X-Middleware-Injected': 'true', // Debug header
+                            'X-Mw-Bot': isBot.toString(),
+                            'X-Mw-Slug': slug || 'null'
                         }
                     });
+                } else {
+                    // Data empty
+                    const res = await fetch(request);
+                    const newRes = new Response(res.body, res);
+                    newRes.headers.set('X-Mw-Error', 'No Data Found');
+                    newRes.headers.set('X-Mw-Bot', isBot.toString());
+                    return newRes;
                 }
             } else {
                 console.error("Supabase Fetch Error:", apiRes.status, apiRes.statusText);
+                const res = await fetch(request);
+                const newRes = new Response(res.body, res);
+                newRes.headers.set('X-Mw-Error', `Supabase ${apiRes.status}`);
+                newRes.headers.set('X-Mw-Bot', isBot.toString());
+                return newRes;
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Middleware Error:", error);
+            const res = await fetch(request);
+            const newRes = new Response(res.body, res);
+            newRes.headers.set('X-Mw-Error', `Exception: ${error.message}`);
+            newRes.headers.set('X-Mw-Bot', isBot.toString());
+            return newRes;
         }
     }
 
     // 5. Fallback: Serve the application normally (Client-Side Rendering)
     // For bots that are NOT news pages, or if fetch fails, or for normal users
-    return fetch(request);
+
+    // Add debug headers to normal response too for tracing
+    const response = await fetch(request);
+    const newRes = new Response(response.body, response);
+
+    // Clean headers for production, but kept here for debugging this issue
+    newRes.headers.set('X-Mw-Bot', isBot.toString());
+    if (slug) newRes.headers.set('X-Mw-Slug', slug);
+
+    return newRes;
 }
 
 export const config = {
