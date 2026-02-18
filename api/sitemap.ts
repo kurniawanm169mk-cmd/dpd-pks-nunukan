@@ -1,62 +1,75 @@
-import { createClient } from '@supabase/supabase-js';
+export const config = {
+    runtime: 'edge',
+};
 
-export default async function handler(req, res) {
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://hyzlxuitqpbfhgapovhd.supabase.co";
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5emx4dWl0cXBiZmhnYXBvdmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzOTc4MjQsImV4cCI6MjA3OTk3MzgyNH0.Zv9Su84S7jTUSsXUoD54FE0o4gD9Zmeial2BS8poxYc";
+const BASE_URL = "https://nunukan.pks.id";
 
-    // 1. Fetch Site Config
-    const { data: settings } = await supabase
-        .from('site_settings')
-        .select('identity')
-        .single();
+export default async function handler(request: Request) {
+    try {
+        // Fetch all news slugs - only use columns that exist in live DB
+        const queryUrl = `${SUPABASE_URL}/rest/v1/news_items?select=slug,created_at&order=created_at.desc`;
 
-    // Use configured siteUrl or fallback
-    const baseUrl = settings?.identity?.siteUrl || 'https://dpd-pks-nunukan.vercel.app';
+        const apiRes = await fetch(queryUrl, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        });
 
-    // 2. Fetch all news slugs
-    const { data: newsItems } = await supabase
-        .from('news_items')
-        .select('slug, updated_at')
-        .eq('status', 'published');
+        let newsItems: Array<{ slug: string; created_at: string }> = [];
+        if (apiRes.ok) {
+            newsItems = await apiRes.json();
+        }
 
-    const staticPages = [
-        '',
-        '/about',
-        '/team'
-    ]; // 'news' page is usually just the hashtag section
+        const staticPages = [
+            { url: '/', priority: '1.0', changefreq: 'daily' },
+            { url: '/#berita', priority: '0.9', changefreq: 'daily' },
+            { url: '/#tentang', priority: '0.7', changefreq: 'monthly' },
+            { url: '/#tim', priority: '0.6', changefreq: 'monthly' },
+            { url: '/#kontak', priority: '0.6', changefreq: 'monthly' },
+        ];
 
-    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+        let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Add static pages
-    staticPages.forEach(page => {
-        sitemap += `
-  <url>
-    <loc>${baseUrl}${page}</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-    });
-
-    // Add news pages
-    if (newsItems) {
-        newsItems.forEach(item => {
-            const lastMod = item.updated_at ? new Date(item.updated_at).toISOString() : new Date().toISOString();
+        // Static pages
+        staticPages.forEach(page => {
             sitemap += `
   <url>
-    <loc>${baseUrl}/news/${item.slug}</loc>
-    <lastmod>${lastMod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <loc>${BASE_URL}${page.url}</loc>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
   </url>`;
         });
-    }
 
-    sitemap += `
+        // News pages - each article gets its own URL
+        newsItems.forEach(item => {
+            if (!item.slug) return;
+            const lastMod = item.created_at
+                ? new Date(item.created_at).toISOString().split('T')[0]
+                : new Date().toISOString().split('T')[0];
+            sitemap += `
+  <url>
+    <loc>${BASE_URL}/news/${item.slug}</loc>
+    <lastmod>${lastMod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+        });
+
+        sitemap += `
 </urlset>`;
 
-    res.setHeader('Content-Type', 'application/xml');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    res.status(200).send(sitemap);
+        return new Response(sitemap, {
+            headers: {
+                'Content-Type': 'application/xml; charset=utf-8',
+                'Cache-Control': 's-maxage=3600, stale-while-revalidate',
+            }
+        });
+
+    } catch (error: any) {
+        return new Response(`Error generating sitemap: ${error.message}`, { status: 500 });
+    }
 }

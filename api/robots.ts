@@ -1,10 +1,19 @@
-export default function handler(req, res) {
+export const config = {
+    runtime: 'edge',
+};
+
+export default function handler(request: Request) {
     const robots = `User-agent: *
 Allow: /
 
-Sitemap: https://dpd-pks-nunukan.vercel.app/sitemap.xml
+# Sitemap
+Sitemap: https://nunukan.pks.id/sitemap.xml
 `;
 
-    res.setHeader('Content-Type', 'text/plain');
-    res.status(200).send(robots);
+    return new Response(robots, {
+        headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 's-maxage=86400',
+        }
+    });
 }

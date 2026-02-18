@@ -6,7 +6,7 @@
                 {
                     "type": "header",
                     "key": "User-Agent",
-                    "value": ".*(facebookexternalhit|whatsapp|twitterbot|linkedinbot|slackbot|discordbot).*"
+                    "value": ".*(facebookexternalhit|whatsapp|twitterbot|linkedinbot|slackbot|discordbot|Googlebot|bingbot|Applebot|Twitterbot|redditbot|Slackbot).*"
                 }
             ],
             "destination": "/api/bot-news?news=:slug"
