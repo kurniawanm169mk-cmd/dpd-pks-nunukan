@@ -22,12 +22,15 @@ export default async function middleware(request: Request) {
 
             if (response.ok) {
                 const html = await response.text();
-                return new Response(html, {
-                    headers: {
-                        'Content-Type': 'text/html; charset=utf-8',
-                        'Cache-Control': 'public, max-age=600' // Cache for 10 mins
-                    }
-                });
+                // Ensure we don't return empty HTML (Prerender failure)
+                if (html && html.length > 500) {
+                    return new Response(html, {
+                        headers: {
+                            'Content-Type': 'text/html; charset=utf-8',
+                            'Cache-Control': 'public, max-age=600' // Cache for 10 mins
+                        }
+                    });
+                }
             }
         } catch (e) {
             console.error('Prerender error:', e);

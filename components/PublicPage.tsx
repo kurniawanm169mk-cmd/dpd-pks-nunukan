@@ -143,7 +143,9 @@ const PublicPage: React.FC = () => {
       // Update Open Graph meta tags for social media preview
       updateMetaTag('og:title', selectedNews.title);
       updateMetaTag('og:description', selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 160) + '...');
-      updateMetaTag('og:image', selectedNews.imageUrl);
+      // Encode URL to handle spaces/special chars in filenames (Supabase)
+      const encodedImageUrl = selectedNews.imageUrl ? encodeURI(selectedNews.imageUrl) : '';
+      updateMetaTag('og:image', encodedImageUrl);
       updateMetaTag('og:url', window.location.href);
       updateMetaTag('og:type', 'article');
 
@@ -151,7 +153,9 @@ const PublicPage: React.FC = () => {
       updateMetaTag('twitter:card', 'summary_large_image');
       updateMetaTag('twitter:title', selectedNews.title);
       updateMetaTag('twitter:description', selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 160) + '...');
-      updateMetaTag('twitter:image', selectedNews.imageUrl);
+      // Encode URL for Twitter as well
+      const encodedTwitterImage = selectedNews.imageUrl ? encodeURI(selectedNews.imageUrl) : '';
+      updateMetaTag('twitter:image', encodedTwitterImage);
     } else if (view === 'home') {
       // Reset to default meta tags when returning home
       document.title = config.identity.name;
