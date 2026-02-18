@@ -131,6 +131,10 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Unexpected error loading config:', err);
       } finally {
         setLoading(false);
+        // Hide the splash screen now that data is ready
+        if (typeof (window as any).hideSplash === 'function') {
+          (window as any).hideSplash();
+        }
       }
     };
 

@@ -87,6 +87,41 @@
 </head>
 
 <body class="bg-gray-50 text-gray-900 antialiased selection:bg-gray-200 selection:text-gray-900">
+
+  <!-- Splash Screen: shown instantly, hidden after app loads -->
+  <div id="splash-screen" style="
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  ">
+    <img src="https://hyzlxuitqpbfhgapovhd.supabase.co/storage/v1/object/public/images/logo-pks.png" alt="PKS Nunukan"
+      style="width: 100px; height: 100px; object-fit: contain;"
+      onerror="this.src=''; this.style.display='none'; document.getElementById('splash-fallback').style.display='block';" />
+    <!-- Fallback text if logo fails to load -->
+    <div id="splash-fallback" style="display:none; font-size:24px; font-weight:700; color:#1a5c2a;">PKS</div>
+    <p style="margin-top: 16px; font-size: 14px; color: #6b7280; font-family: sans-serif;">DPD PKS Nunukan</p>
+  </div>
+
+  <script>
+    // Called by ConfigContext once data is ready
+    window.hideSplash = function () {
+      var splash = document.getElementById('splash-screen');
+      if (splash) {
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        setTimeout(function () { splash.remove(); }, 400);
+      }
+    };
+    // Safety fallback: hide after 3 seconds no matter what
+    setTimeout(window.hideSplash, 3000);
+  </script>
+
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
