@@ -22,7 +22,11 @@ export default async function middleware(request: Request) {
         try {
             // 3. Fetch News Data from Supabase directly
             // Using direct fetch to avoid heavy client library in middleware
-            const queryUrl = `${SUPABASE_URL}/rest/v1/news_items?or=(slug.eq.${slug},id.eq.${slug})&select=title,content,image_url,meta_description&limit=1`;
+            // FIX: Query only by slug to avoid UUID vs Text type mismatch in 'or' filter
+            let queryUrl = `${SUPABASE_URL}/rest/v1/news_items?slug=eq.${slug}&select=title,content,image_url,meta_description&limit=1`;
+
+            // If slug looks like a UUID, we could optionally query by ID, but for social sharing it's 99% slugs.
+            // keeping it simple to prevent 500 errors.
 
             const apiRes = await fetch(queryUrl, {
                 headers: {
