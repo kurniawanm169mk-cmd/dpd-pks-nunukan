@@ -149,6 +149,41 @@ const PublicPage: React.FC = () => {
       updateMetaTag('og:url', window.location.href);
       updateMetaTag('og:type', 'article');
 
+      // Inject JSON-LD for Google Rich Results (Client-side fallback)
+      const jsonLdScript = document.createElement('script');
+      jsonLdScript.type = 'application/ld+json';
+      jsonLdScript.id = 'news-json-ld';
+      jsonLdScript.text = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": selectedNews.title,
+        "description": selectedNews.metaDescription || stripHtml(selectedNews.content).substring(0, 160),
+        "image": [encodedImageUrl],
+        "datePublished": selectedNews.date || new Date().toISOString(),
+        "dateModified": selectedNews.date || new Date().toISOString(),
+        "author": {
+          "@type": "Organization",
+          "name": config.identity.name,
+          "url": window.location.origin
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": config.identity.name,
+          "logo": {
+            "@type": "ImageObject",
+            "url": config.identity.logoUrl || `${window.location.origin}/og-default.jpg`
+          }
+        },
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": window.location.href
+        }
+      });
+      // Remove existing JSON-LD if any
+      const existingScript = document.getElementById('news-json-ld');
+      if (existingScript) existingScript.remove();
+      document.head.appendChild(jsonLdScript);
+
       // Twitter Card tags
       updateMetaTag('twitter:card', 'summary_large_image');
       updateMetaTag('twitter:title', selectedNews.title);
@@ -164,6 +199,10 @@ const PublicPage: React.FC = () => {
       updateMetaTag('og:image', config.identity.logoUrl || '');
       updateMetaTag('og:url', window.location.origin);
       updateMetaTag('og:type', 'website');
+
+      // Cleanup JSON-LD
+      const existingScript = document.getElementById('news-json-ld');
+      if (existingScript) existingScript.remove();
     }
 
     // Signal Prerender.io that the page is ready (after meta tags are set)
