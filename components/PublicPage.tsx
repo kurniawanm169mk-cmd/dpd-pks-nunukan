@@ -33,6 +33,9 @@ const PublicPage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [newsImageSlide, setNewsImageSlide] = useState(0);
 
+  // Lightbox State
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
   // Dynamic browser tab branding - update title and favicon
   useEffect(() => {
     if (config.identity.name) {
@@ -235,6 +238,24 @@ const PublicPage: React.FC = () => {
     return () => clearTimeout(timeout);
   }, []);
 
+  // Close lightbox with Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxUrl(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Handler: klik gambar di dalam konten HTML berita (dangerouslySetInnerHTML)
+  const handleContentImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG') {
+      const src = (target as HTMLImageElement).src;
+      if (src) setLightboxUrl(src);
+    }
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await login(usernameInput, passwordInput);
@@ -373,6 +394,9 @@ const PublicPage: React.FC = () => {
         .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
         .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
         .prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1em; font-style: italic; }
+        /* Lightbox: gambar dalam konten bisa diklik */
+        .news-content img { cursor: zoom-in; transition: opacity 0.2s; }
+        .news-content img:hover { opacity: 0.85; }
       `}</style>
 
       {/* Login Modal */}
@@ -690,7 +714,12 @@ const PublicPage: React.FC = () => {
                 const allImages = [selectedNews.imageUrl, ...(selectedNews.images || [])].filter(Boolean);
                 return (
                   <div className="relative bg-gray-900">
-                    <div className="relative overflow-hidden" style={{ minHeight: '400px', maxHeight: '600px' }}>
+                    <div
+                      className="relative overflow-hidden cursor-zoom-in"
+                      style={{ minHeight: '400px', maxHeight: '600px' }}
+                      onClick={() => setLightboxUrl(allImages[newsImageSlide])}
+                      title="Klik untuk perbesar"
+                    >
                       <img
                         src={allImages[newsImageSlide]}
                         alt="News Detail"
@@ -698,6 +727,11 @@ const PublicPage: React.FC = () => {
                         style={{ minHeight: '400px', maxHeight: '600px' }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+                      {/* Zoom hint */}
+                      <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" /></svg>
+                        Perbesar
+                      </div>
                     </div>
 
                     {allImages.length > 1 && (
@@ -730,9 +764,10 @@ const PublicPage: React.FC = () => {
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">{selectedNews.title}</h1>
 
                 <div
-                  className="prose prose-lg prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-img:rounded-xl prose-img:shadow-md max-w-none text-gray-700 leading-relaxed text-lg"
+                  className="prose prose-lg prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-img:rounded-xl prose-img:shadow-md max-w-none text-gray-700 leading-relaxed text-lg news-content"
                   style={{ fontSize: '1.1rem', lineHeight: '1.9' }}
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedNews.content) }}
+                  onClick={handleContentImageClick}
                 />
 
                 {selectedNews.tags && selectedNews.tags.length > 0 && (
@@ -812,6 +847,34 @@ const PublicPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Lightbox Modal */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setLightboxUrl(null)}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 text-white bg-white/20 hover:bg-white/40 rounded-full p-2 transition z-10"
+            title="Tutup (Esc)"
+          >
+            <X size={28} />
+          </button>
+
+          {/* Keterangan tap */}
+          <p className="absolute bottom-4 left-0 right-0 text-center text-white/50 text-sm">Klik di mana saja atau tekan Esc untuk menutup</p>
+
+          {/* Image */}
+          <img
+            src={lightboxUrl}
+            alt="Preview"
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };
