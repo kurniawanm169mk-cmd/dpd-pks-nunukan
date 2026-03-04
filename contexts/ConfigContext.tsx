@@ -151,7 +151,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [config, loading]);
 
-  const updateConfig = async (newConfig: Partial<SiteConfig>) => {
+  const updateConfig = async (newConfig: Partial<SiteConfig>): Promise<void> => {
     // Optimistic update
     setConfigState((prev) => {
       const updated = { ...prev, ...newConfig };
@@ -172,15 +172,37 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (newConfig.hero) settingsUpdate.hero = newConfig.hero;
       if (newConfig.about) settingsUpdate.about = newConfig.about;
       if (newConfig.contact) settingsUpdate.contact = newConfig.contact;
-      if (newConfig.teamBackgroundColor) settingsUpdate.team_background_color = newConfig.teamBackgroundColor;
-      if (newConfig.teamTextColor) settingsUpdate.team_text_color = newConfig.teamTextColor;
-      if (newConfig.newsBackgroundColor) settingsUpdate.news_background_color = newConfig.newsBackgroundColor;
-      if (newConfig.newsTextColor) settingsUpdate.news_text_color = newConfig.newsTextColor;
+      if (newConfig.teamBackgroundColor !== undefined) settingsUpdate.team_background_color = newConfig.teamBackgroundColor;
+      if (newConfig.teamTextColor !== undefined) settingsUpdate.team_text_color = newConfig.teamTextColor;
+      if (newConfig.newsBackgroundColor !== undefined) settingsUpdate.news_background_color = newConfig.newsBackgroundColor;
+      if (newConfig.newsTextColor !== undefined) settingsUpdate.news_text_color = newConfig.newsTextColor;
       if (newConfig.sectionTitles) settingsUpdate.section_titles = newConfig.sectionTitles;
       if (newConfig.sectionDescriptions) settingsUpdate.section_descriptions = newConfig.sectionDescriptions;
 
       if (Object.keys(settingsUpdate).length > 0) {
-        await supabase.from('site_settings').update(settingsUpdate).eq('id', 1);
+        const { error: settingsError } = await supabase
+          .from('site_settings')
+          .upsert({ id: 1, ...settingsUpdate }, { onConflict: 'id' });
+        if (settingsError) {
+          // Jika error karena kolom section_titles/section_descriptions belum ada di DB,
+          // coba simpan tanpa kolom tersebut
+          const hasMissingColumnError =
+            settingsError.message?.includes('section_titles') ||
+            settingsError.message?.includes('section_descriptions');
+          if (hasMissingColumnError) {
+            const fallbackUpdate = { ...settingsUpdate };
+            delete fallbackUpdate.section_titles;
+            delete fallbackUpdate.section_descriptions;
+            if (Object.keys(fallbackUpdate).length > 0) {
+              const { error: fallbackError } = await supabase
+                .from('site_settings')
+                .upsert({ id: 1, ...fallbackUpdate }, { onConflict: 'id' });
+              if (fallbackError) throw new Error(`Gagal update site_settings: ${fallbackError.message}`);
+            }
+          } else {
+            throw new Error(`Gagal update site_settings: ${settingsError.message}`);
+          }
+        }
       }
 
       // 2. Handle Arrays (Team, News, Socials)
@@ -407,6 +429,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     } catch (err) {
       console.error('Error saving to Supabase:', err);
+      throw err;
     }
   };
 

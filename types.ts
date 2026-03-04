@@ -131,7 +131,7 @@ export interface SiteConfig {
 
 export interface ConfigContextType {
   config: SiteConfig;
-  updateConfig: (newConfig: Partial<SiteConfig>) => void;
+  updateConfig: (newConfig: Partial<SiteConfig>) => Promise<void>;
   resetConfig: () => void;
   isAdmin: boolean;
   toggleAdmin: () => void;
