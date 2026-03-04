@@ -88,6 +88,12 @@ const PublicPage: React.FC = () => {
     return html.replace(/<[^>]*>?/gm, '');
   };
 
+  // Helper to sanitize HTML and strip inline event handlers (like onerror) to prevent malicious code/infinite loops
+  const sanitizeHtml = (html: string) => {
+    if (!html) return '';
+    return html.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  };
+
   // Search Logic
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -520,7 +526,7 @@ const PublicPage: React.FC = () => {
                     <h3 className="text-primary font-bold tracking-widest uppercase text-sm">Tentang Kami</h3>
                   </div>
                   <h2 className="text-3xl md:text-4xl font-bold mb-8 leading-tight" style={{ color: config.about.textColor || 'inherit' }}>{config.about.title}</h2>
-                  <div className="prose prose-lg md:columns-2 gap-8 text-justify" style={{ color: config.about.textColor || 'inherit' }} dangerouslySetInnerHTML={{ __html: config.about.content || '<p>Deskripsi belum diatur.</p>' }} />
+                  <div className="prose prose-lg md:columns-2 gap-8 text-justify" style={{ color: config.about.textColor || 'inherit' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.about.content) || '<p>Deskripsi belum diatur.</p>' }} />
                 </div>
               </div>
             </div>
@@ -726,7 +732,7 @@ const PublicPage: React.FC = () => {
                 <div
                   className="prose prose-lg prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-img:rounded-xl prose-img:shadow-md max-w-none text-gray-700 leading-relaxed text-lg"
                   style={{ fontSize: '1.1rem', lineHeight: '1.9' }}
-                  dangerouslySetInnerHTML={{ __html: selectedNews.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedNews.content) }}
                 />
 
                 {selectedNews.tags && selectedNews.tags.length > 0 && (

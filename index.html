@@ -102,7 +102,7 @@
   ">
     <img src="https://hyzlxuitqpbfhgapovhd.supabase.co/storage/v1/object/public/images/logo-pks.png" alt="PKS Nunukan"
       style="width: 100px; height: 100px; object-fit: contain;"
-      onerror="this.src=''; this.style.display='none'; document.getElementById('splash-fallback').style.display='block';" />
+      onerror="this.onerror=null; this.src=''; if(this.style) this.style.display='none'; var fallback = document.getElementById('splash-fallback'); if(fallback) fallback.style.display='block';" />
     <!-- Fallback text if logo fails to load -->
     <div id="splash-fallback"
       style="display:none; font-size:28px; font-weight:900; color:#f97316; font-family:'Poppins', sans-serif; letter-spacing:2px;">
